@@ -1,33 +1,13 @@
 # coding:utf-8
 import hashlib
-import json
 from time import time
 from uuid import uuid4
-from flask import Flask, jsonify, request
+from Block import Block
 
 try:
     from urllib.parse import urlparse
 except ImportError:
     from urlparse import urlparse
-import requests
-
-
-"""
-简化的区块链
-
-功能：
-1.可以进行挖矿
-2.可以进行交易
-3.可以进行简单工作量证明
-4.可以进行简单共识
-
-
-TODO:
-1.POW机制扩展
-2.共识扩展
-3.p2p网络发现
-
-"""
 
 
 def caculate_hash(index, previous_hash, timestamp, data, proof):
@@ -37,40 +17,6 @@ def caculate_hash(index, previous_hash, timestamp, data, proof):
 
 def caculate_block_hash(block):
     return caculate_hash(block.index, block.previous_hash, block.timestamp, block.data, block.proof)
-
-
-class Block(object):
-
-    def __init__(self, index, previous_hash, timestamp, data, proof, current_hash):
-        """
-        区块结构
-        :param previous_hash: <str> 前一区块地址
-        :param hash: <str> 当前区块的目标哈希值
-        :param version: <int> 当前版本号
-        :param nonce: <str> 当前区块POW共识过程的解随机数
-        :param merkle_root: <object> 保存交易当前区块交易数据树结构
-        """
-        # header
-        self.index = index
-        self.previous_hash = previous_hash
-        self.timestamp = timestamp
-        self.data = data
-        self.proof = proof
-        self.current_hash = current_hash
-
-        # body
-        self.transactions = None
-
-    def get_json_obj(self):
-        return {
-            "index": self.index,
-            "previous_hash": self.previous_hash,
-            "timestamp": self.timestamp,
-            "data": self.data,
-            "proof": self.proof,
-            "current_hash": self.current_hash,
-            "transactions": self.transactions
-        }
 
 
 class Blockchain(object):
@@ -201,53 +147,5 @@ class Blockchain(object):
         for i in range(len(self.chain)):
             output_chain_list.append(self.chain[i].get_json_obj())
         return output_chain_list
-
-
-
-app = Flask(__name__)
-
-blockchain = Blockchain()
-@app.route('/mine', methods=['GET'])
-def mine():
-    block = blockchain.do_mine()
-
-    response = {
-        'message': 'New Block Forged',
-        'index': block.index,
-        'transactions': block.transactions,
-        'proof': block.proof,
-        'previous_hash': block.previous_hash
-    }
-    return jsonify(response), 200
-
-@app.route('/chain', methods=['GET'])
-def full_chain():
-
-    response = {
-        'chain': blockchain.get_full_chain(),
-        'length': len(blockchain.chain)
-    }
-    return jsonify(response), 200
-
-@app.route('/transactions/new', methods=['POST'])
-def new_transaction():
-    values = request.get_json()
-    required = ['sender', 'receiver', 'amount']
-    if not all(k in values for k in required):
-        return 'Missing values', 400
-
-    # Create a new Transaction
-    index = blockchain.new_transaction(values['sender'], values['receiver'], values['amount'])
-    response = {'message': 'Transaction will be added to Block' + str(index)}
-    return jsonify(response), 201
-
-if __name__ == '__main__':
-    from argparse import ArgumentParser
-
-    parser = ArgumentParser()
-    parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
-    args = parser.parse_args()
-    port = args.port
-    app.run(host='0.0.0.0', port=port)
 
 
