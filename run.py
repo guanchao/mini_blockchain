@@ -25,10 +25,11 @@ TODO:
 
 """
 
-
 app = Flask(__name__)
 
 blockchain = Blockchain()
+
+
 @app.route('/mine', methods=['GET'])
 def mine():
     block = blockchain.do_mine()
@@ -42,14 +43,15 @@ def mine():
     }
     return jsonify(response), 200
 
+
 @app.route('/chain', methods=['GET'])
 def full_chain():
-
     response = {
         'chain': blockchain.get_full_chain(),
         'length': len(blockchain.chain)
     }
     return jsonify(response), 200
+
 
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
@@ -63,6 +65,7 @@ def new_transaction():
     response = {'message': 'Transaction will be added to Block' + str(index)}
     return jsonify(response), 201
 
+
 if __name__ == '__main__':
     from argparse import ArgumentParser
 
@@ -71,5 +74,3 @@ if __name__ == '__main__':
     args = parser.parse_args()
     port = args.port
     app.run(host='0.0.0.0', port=port)
-
-

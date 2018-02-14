@@ -2,6 +2,7 @@
 import hashlib
 from time import time
 from uuid import uuid4
+
 from Block import Block
 
 try:
@@ -15,12 +16,12 @@ def caculate_hash(index, previous_hash, timestamp, data, proof):
     sha = hashlib.sha256(value.encode('utf-8'))
     return str(sha.hexdigest())
 
+
 def caculate_block_hash(block):
     return caculate_hash(block.index, block.previous_hash, block.timestamp, block.data, block.proof)
 
 
 class Blockchain(object):
-
     def __init__(self):
         self.difficulty = 4
         self.chain = []
@@ -69,7 +70,7 @@ class Blockchain(object):
             new_block_attempt = self.__generate_block("Mine block", timestamp, proof)
             # print "["+str(proof)+"]", new_block_attempt.current_hash
 
-            if new_block_attempt.current_hash[0:self.difficulty] == '0'*self.difficulty:
+            if new_block_attempt.current_hash[0:self.difficulty] == '0' * self.difficulty:
                 end_timestamp = time()
                 cos_timestamp = end_timestamp - timestamp
                 print('New block found with proof ' + str(proof) + ' in ' + str(round(cos_timestamp, 2)) + ' seconds.')
@@ -103,7 +104,7 @@ class Blockchain(object):
 
         temp_chain = [chain[0]]
         for i in range(1, len(chain)):
-            if self.__is_valid_new_block(chain[i], temp_chain[i-1]):
+            if self.__is_valid_new_block(chain[i], temp_chain[i - 1]):
                 temp_chain.append(chain[i])
             else:
                 return False
@@ -147,5 +148,3 @@ class Blockchain(object):
         for i in range(len(self.chain)):
             output_chain_list.append(self.chain[i].get_json_obj())
         return output_chain_list
-
-

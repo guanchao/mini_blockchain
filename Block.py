@@ -1,7 +1,6 @@
 # coding:utf-8
 
 class Block(object):
-
     def __init__(self, index, previous_hash, timestamp, data, proof, current_hash):
         """
         区块结构
@@ -32,5 +31,3 @@ class Block(object):
             "current_hash": self.current_hash,
             "transactions": self.transactions
         }
-
-
