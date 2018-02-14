@@ -51,21 +51,21 @@ class MerkleTrees(object):
         last_key = self.transaction_tree.keys()[-1]
         return self.transaction_tree[last_key]
 
-if __name__ == "__main__":
-    # Test
-    transaction = ['a', 'b']
-    tree = MerkleTrees(transaction)
-    tree.create_tree()
-    transaction_tree = tree.get_transaction_tree()
-    print 'Root of the tree:', tree.get_root_leaf()
-    print(json.dumps(transaction_tree, indent=4))
-
-    print '----------------------------------------------'
-
-    transaction = ['a', 'b', 'c']
-    tree = MerkleTrees(transaction)
-    tree.create_tree()
-    transaction_tree = tree.get_transaction_tree()
-    print 'Root of the tree:', tree.get_root_leaf()
-    print(json.dumps(transaction_tree, indent=4))
+# if __name__ == "__main__":
+#     # Test
+#     transaction = ['a', 'b']
+#     tree = MerkleTrees(transaction)
+#     tree.create_tree()
+#     transaction_tree = tree.get_transaction_tree()
+#     print 'Root of the tree:', tree.get_root_leaf()
+#     print(json.dumps(transaction_tree, indent=4))
+#
+#     print '----------------------------------------------'
+#
+#     transaction = ['a', 'b', 'c']
+#     tree = MerkleTrees(transaction)
+#     tree.create_tree()
+#     transaction_tree = tree.get_transaction_tree()
+#     print 'Root of the tree:', tree.get_root_leaf()
+#     print(json.dumps(transaction_tree, indent=4))
 
