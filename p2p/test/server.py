@@ -1,6 +1,5 @@
 # coding:utf-8
-
-from node import NodeManager
+from p2p.node import NodeManager
 
 node = NodeManager("localhost", 3001, 1111)
 
