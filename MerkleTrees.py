@@ -43,7 +43,6 @@ class MerkleTrees(object):
             transaction_tree[transaction_list[0]] = root_leaf_hash
             self.transaction_tree = transaction_tree
 
-
     def get_transaction_tree(self):
         return self.transaction_tree
 
@@ -68,4 +67,3 @@ class MerkleTrees(object):
 #     transaction_tree = tree.get_transaction_tree()
 #     print 'Root of the tree:', tree.get_root_leaf()
 #     print(json.dumps(transaction_tree, indent=4))
-
