@@ -10,36 +10,7 @@ import time
 from p2p import constant
 from p2p.kbucketset import KBucketSet
 from p2p.nearestnodes import RPCNearestNodes
-
-
-class Message(object):
-    """
-    P2P节点中互相通信的用的消息对象
-    """
-    MSG_TYPE_PING = 101
-    MSG_TYPE_PING_RESPONSE = 102
-
-    MSG_TYPE_FIND_NODE = 103
-    MSG_TYPE_FIND_NODE_RESPONSE = 104
-
-    MSG_TYPE_FIND_VALUE = 105
-    MSG_TYPE_FIND_VALUE_RESPONSE = 106
-
-    MSG_TYPE_STORE = 107
-
-    def __init__(self, message_type, client_node_id=None, server_node_id=None, key=None, value=None, node_id=None,
-                 rpc_id=None, nearest_nodes=None):
-        self.type = message_type
-        self.client_node_id = client_node_id
-        self.server_node_id = server_node_id
-        self.key = key
-        self.value = value
-        self.node_id = node_id
-        self.rpc_id = rpc_id
-        self.nearest_nodes = nearest_nodes
-
-    def __repr__(self):
-        return json.dumps(self.__dict__)
+from p2p import packet
 
 
 class RequestHandler(SocketServer.BaseRequestHandler):
@@ -55,27 +26,27 @@ class RequestHandler(SocketServer.BaseRequestHandler):
         备注：self.client_address是BaseRequestHandler的成员变量，记录连接到服务端的client地址
         :return:
         """
-        message = json.loads(self.request[0].decode('utf-8').strip())
-        print 'From ', self.client_address, message
-        message_type = message["type"]
+        msg = json.loads(self.request[0].decode('utf-8').strip())
+        print 'Handle from ', self.client_address, msg
+        message_type = msg["msg_type"]
 
-        if message_type == Message.MSG_TYPE_PING:
-            self.handle_ping(message)
-        elif message_type == Message.MSG_TYPE_PING_RESPONSE:
-            self.handle_ping_response(message)
-        elif message_type == Message.MSG_TYPE_FIND_NODE:
-            self.handle_find_node(message)
-        elif message_type == Message.MSG_TYPE_FIND_NODE_RESPONSE:
-            self.handle_find_node_response(message)
-        elif message_type == Message.MSG_TYPE_FIND_VALUE:
-            self.handle_find_value(message)
-        elif message_type == Message.MSG_TYPE_FIND_VALUE_RESPONSE:
-            self.handle_find_value_response(message)
-        elif message_type == Message.MSG_TYPE_STORE:
-            self.handle_store(message)
+        if message_type == packet.MSG_TYPE_PING:
+            self.handle_ping(msg)
+        elif message_type == packet.MSG_TYPE_PONG:
+            self.handle_pong(msg)
+        elif message_type == packet.MSG_TYPE_FIND_NEIGHBORS:
+            self.handle_find_neighbors(msg)
+        elif message_type == packet.MSG_TYPE_FOUND_NEIGHBORS:
+            self.handle_found_neighbors(msg)
+        elif message_type == packet.MSG_TYPE_FIND_VALUE:
+            self.handle_find_value(msg)
+        elif message_type == packet.MSG_TYPE_FOUND_VALUE:
+            self.handle_found_value(msg)
+        elif message_type == packet.MSG_TYPE_STORE:
+            self.handle_store(msg)
 
         client_ip, client_port = self.client_address
-        client_node_id = message['client_node_id']
+        client_node_id = msg['from_id']
         new_node = Node(client_ip, client_port, client_node_id)
         self.server.node_manager.buckets.insert(new_node)
         print '[Info] All nodes:', self.server.node_manager.buckets.get_all_nodes()
@@ -84,45 +55,42 @@ class RequestHandler(SocketServer.BaseRequestHandler):
         print '[Info] handle ping', message
         socket = self.request[1]
         client_ip, client_port = self.client_address
-        client_node_id = message['client_node_id']
+        client_node_id = message['from_id']
 
-        self.server.node_manager.ping_response(socket, client_node_id, (client_ip, client_port))
+        self.server.node_manager.pong(socket, client_node_id, (client_ip, client_port))
 
-    def handle_ping_response(self, message):
+    def handle_pong(self, message):
         print '[Info] handle ping response', message
 
-    def handle_find_node(self, message):
+    def handle_find_neighbors(self, message):
         print '[Info] handle find node', message
 
         socket = self.request[1]
         client_ip, client_port = self.client_address
-        client_node_id = message['client_node_id']
+        client_node_id = message['from_id']
 
-        node_id = message['node_id']
+        node_id = message['target_id']
         rpc_id = message['rpc_id']
         nearest_nodes = self.server.node_manager.buckets.nearest_nodes(node_id)
         if not nearest_nodes:
             nearest_nodes.append(self.server.node_manager.client)
         nearest_nodes_triple = [node.triple() for node in nearest_nodes]
-        self.server.node_manager.find_node_response(node_id, rpc_id, nearest_nodes_triple, socket, client_node_id,
-                                                    (client_ip, client_port))
+        self.server.node_manager.found_neighbors(node_id, rpc_id, nearest_nodes_triple, socket, client_node_id,
+                                                 (client_ip, client_port))
 
-    def handle_find_node_response(self, message):
-        print '[Info] handle find node response', message
+    def handle_found_neighbors(self, message):
+        print '[Info] handle find neighbors', message
         rpc_id = message['rpc_id']
         rpc_nearest_nodes = self.server.node_manager.rpc_ids[rpc_id]
-        print '[Info] handle find node response:', rpc_nearest_nodes.list
         del self.server.node_manager.rpc_ids[rpc_id]
-        nearest_nodes = [Node(*node) for node in message['nearest_nodes']]
-        print '[Info] handle find node response, update new nodes:', nearest_nodes
+        nearest_nodes = [Node(*node) for node in message['neighbors']]
         rpc_nearest_nodes.update(nearest_nodes)
-        print '[Info] handle find node response, after new nodes:', rpc_nearest_nodes.list
 
     def handle_find_value(self, message):
         print '[Info] handle find value', message
 
-    def handle_find_value_response(self, message):
-        print '[Info] handle find value response', message
+    def handle_found_value(self, message):
+        print '[Info] handle found value', message
 
     def handle_store(self, message):
         print '[Info] handle store', message
@@ -162,41 +130,38 @@ class Node(object):
     def triple(self):
         return (self.ip, self.port, self.node_id)
 
-    def __send_message(self, sock, server_node_id, target_node_address, message):
+    def __send_message(self, sock, target_node_address, message):
         """
 
         :param sock: <Socket obj> 跟服务端的socket连接
-        :param server_node_id: <int> 发送给目标节点的id
         :param target_node_address: <tuple> 发送给目标节点的地址(ip,port)
         :param message: <Message obj> 消息对象
         :return:
         """
-        message.client_node_id = self.node_id
-        message.server_node_id = server_node_id
 
         message_json_output = json.dumps(message.__dict__)
         sock.sendto(message_json_output, target_node_address)
 
-    def ping(self, sock, server_node_id, target_node_address, message):
-        self.__send_message(sock, server_node_id, target_node_address, message)
+    def ping(self, sock, target_node_address, message):
+        self.__send_message(sock, target_node_address, message)
 
-    def ping_response(self, sock, server_node_id, target_node_address, message):
-        self.__send_message(sock, server_node_id, target_node_address, message)
+    def pong(self, sock, target_node_address, message):
+        self.__send_message(sock, target_node_address, message)
 
-    def find_node(self, sock, target_node_id, target_node_address, message):
-        self.__send_message(sock, target_node_id, target_node_address, message)
+    def find_neighbors(self, sock, target_node_address, message):
+        self.__send_message(sock, target_node_address, message)
 
-    def find_node_response(self, sock, target_node_id, target_node_address, message):
-        self.__send_message(sock, target_node_id, target_node_address, message)
+    def found_neighbors(self, sock, target_node_address, message):
+        self.__send_message(sock, target_node_address, message)
 
-    def find_value(self, sock, server_node_id, target_node_address, message):
-        self.__send_message(sock, server_node_id, target_node_address, message)
+    def find_value(self, sock, target_node_address, message):
+        self.__send_message(sock, target_node_address, message)
 
-    def find_value_response(self, sock, server_node_id, target_node_address, message):
-        self.__send_message(sock, server_node_id, target_node_address, message)
+    def found_value(self, sock, target_node_address, message):
+        self.__send_message(sock, target_node_address, message)
 
-    def store(self, sock, server_node_id, target_node_address, message):
-        self.__send_message(sock, server_node_id, target_node_address, message)
+    def store(self, sock, target_node_address, message):
+        self.__send_message(sock, target_node_address, message)
 
 
 class NodeManager(object):
@@ -211,7 +176,7 @@ class NodeManager(object):
 
     """
 
-    def __init__(self, ip, port, id=None):
+    def __init__(self, ip, port=0, id=None):
         self.ip = ip
         self.port = port
         if not id:
@@ -223,7 +188,8 @@ class NodeManager(object):
         self.rpc_ids = {}
 
         self.server = Server(self.address, RequestHandler)
-        self.client = Node(ip, port, self.node_id)
+        self.port = self.server.server_address[1]
+        self.client = Node(self.ip, self.port, self.node_id)
 
         self.server.node_manager = self
 
@@ -233,66 +199,46 @@ class NodeManager(object):
         print '[Info] start new node', self.ip, self.port, self.node_id
 
     def ping(self, sock, server_node_id, target_node_address):
-        message = Message(message_type=Message.MSG_TYPE_PING,
-                          client_node_id=self.node_id,
-                          server_node_id=server_node_id)
+        msg = packet.Ping(self.node_id, server_node_id)
         print '[Info] send ping'
-        self.client.ping(sock, server_node_id, target_node_address, message)
+        self.client.ping(sock, target_node_address, msg)
 
-    def ping_response(self, sock, server_node_id, target_node_address):
+    def pong(self, sock, server_node_id, target_node_address):
         """
         发送对ping请求的响应消息
         :param sock: Server端监听返回的客户端连接
         :param target_node_address: 目标节点的地址
         :return:
         """
-        message = Message(message_type=Message.MSG_TYPE_PING_RESPONSE,
-                          client_node_id=self.node_id,
-                          server_node_id=server_node_id)
-        print '[Info] send ping response'
-        self.client.ping_response(sock, server_node_id, target_node_address, message)
+        msg = packet.Pong(self.node_id, server_node_id)
+        print '[Info] send pong'
+        self.client.pong(sock, target_node_address, msg)
 
-    def find_node(self, node_id, rpc_id, sock, server_node_id, server_node_address):
-        message = Message(message_type=Message.MSG_TYPE_FIND_NODE,
-                          client_node_id=node_id,
-                          server_node_id=server_node_id,
-                          node_id=node_id,
-                          rpc_id=rpc_id)
-        print '[Info] send find node', message
-        self.client.find_node(sock, server_node_id, server_node_address, message)
+    def find_neighbors(self, node_id, rpc_id, sock, server_node_id, server_node_address):
+        msg = packet.FindNeighbors(node_id, self.node_id, server_node_id, rpc_id)
+        print '[Info] send find node', packet
+        self.client.find_neighbors(sock, server_node_address, msg)
 
-    def find_node_response(self, node_id, rpc_id, nearest_nodes, sock, server_node_id, servernode_address):
-        message = Message(message_type=Message.MSG_TYPE_FIND_NODE_RESPONSE,
-                          client_node_id=self.node_id,
-                          server_node_id=server_node_id,
-                          key=node_id,
-                          rpc_id=rpc_id,
-                          nearest_nodes=nearest_nodes)
-        print '[Info] send find node response', message
-        self.client.find_node_response(sock, server_node_id, servernode_address, message)
+    def found_neighbors(self, node_id, rpc_id, neighbors, sock, server_node_id, server_node_address):
 
-    def find_value(self, key, sock, server_node_id, target_node_address):
-        message = Message(message_type=Message.MSG_TYPE_FIND_VALUE,
-                          client_node_id=self.node_id,
-                          server_node_id=server_node_id,
-                          key=key)
-        self.client.find_value(sock, server_node_id, target_node_address, message)
+        msg = packet.FoundNeighbors(node_id, self.node_id, server_node_id, rpc_id, neighbors)
+        print '[Info] send find neighbors', msg
+        self.client.found_neighbors(sock, server_node_address, msg)
 
-    def find_value_response(self, key, value, sock, server_node_id, target_node_address):
-        message = Message(message_type=Message.MSG_TYPE_FIND_VALUE_RESPONSE,
-                          client_node_id=self.node_id,
-                          server_node_id=server_node_id,
-                          key=key,
-                          value=value)
-        self.client.find_value_response(sock, server_node_id, target_node_address, message)
+    def find_value(self, key, rpc_id, sock, server_node_id, target_node_address):
+        msg = packet.FindValue(key, self.node_id, server_node_id, rpc_id)
+        print '[Info] send find value', msg
+        self.client.find_value(sock, target_node_address, msg)
+
+    def found_value(self, key, value, rpc_id, sock, server_node_id, target_node_address):
+        msg = packet.FoundValue(key, value, self.node_id, server_node_id, rpc_id)
+        print '[Info] send found value', msg
+        self.client.found_value(sock, target_node_address, msg)
 
     def store(self, key, value, sock, server_node_id, target_node_address):
-        message = Message(message_type=Message.MSG_TYPE_STORE,
-                          client_node_id=self.node_id,
-                          server_node_id=server_node_id,
-                          key=key,
-                          value=value)
-        self.client.store(sock, server_node_id, target_node_address, message)
+        msg = packet.Store(key, value, self.node_id, server_node_id)
+        print '[Info] send store', msg
+        self.client.store(sock, target_node_address, msg)
 
     def iterative_find_nodes(self, target_node, seed_node=None):
         """
@@ -304,23 +250,21 @@ class NodeManager(object):
         print '[Info] iterative find nodes:', target_node, seed_node
         rpc_nearest_nodes = RPCNearestNodes(target_node.node_id)
         rpc_nearest_nodes.update(self.buckets.nearest_nodes(target_node.node_id))
-        print '[Info] first rpc nearest nodes', rpc_nearest_nodes.list
         if seed_node:
             rpc_id = self.__get_rpc_id()
             self.rpc_ids[rpc_id] = rpc_nearest_nodes
-            self.find_node(target_node.node_id, rpc_id, self.server.socket, target_node.node_id,
-                           (seed_node.ip, seed_node.port))
+            self.find_neighbors(target_node.node_id, rpc_id, self.server.socket, target_node.node_id,
+                                (seed_node.ip, seed_node.port))
             # time.sleep(5)
         while (not rpc_nearest_nodes.is_complete()) or seed_node:  # 循环迭代直至距离目标节点最近的K个节点都找出来
             # 限制同时向ALPHA(3)个邻近节点发送FIND NODE请求
             unvisited_nearest_nodes = rpc_nearest_nodes.get_unvisited_nearest_nodes(constant.ALPHA)
-            print '[Info] unvisited nearest nodes', unvisited_nearest_nodes
             for node in unvisited_nearest_nodes:
                 rpc_nearest_nodes.mark(node)
                 rpc_id = self.__get_rpc_id()
                 self.rpc_ids[rpc_id] = rpc_nearest_nodes
-                self.find_node(target_node.node_id, rpc_id, self.server.socket, target_node.node_id,
-                               (node.ip, node.port))
+                self.find_neighbors(target_node.node_id, rpc_id, self.server.socket, target_node.node_id,
+                                    (node.ip, node.port))
             time.sleep(1)
             seed_node = None
 
@@ -348,9 +292,6 @@ class NodeManager(object):
 
     def __random_id(self):
         return random.randint(0, (2 ** constant.BITS) - 1)
-
-    def __get_nearest_nodes(self, data_key):
-        self.buckets.update_nearest_nodes(data_key)
 
     def set_data(self, key, value):
         """
