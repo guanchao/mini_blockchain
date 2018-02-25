@@ -79,6 +79,7 @@ class RequestHandler(SocketServer.BaseRequestHandler):
                                                  (client_ip, client_port))
 
     def handle_found_neighbors(self, message):
+
         print '[Info] handle find neighbors', message
         rpc_id = message['rpc_id']
         rpc_nearest_nodes = self.server.node_manager.rpc_ids[rpc_id]
@@ -88,15 +89,40 @@ class RequestHandler(SocketServer.BaseRequestHandler):
 
     def handle_find_value(self, message):
         print '[Info] handle find value', message
+        socket = self.request[1]
+        client_ip, client_port = self.client_address
+        client_node_id = message['from_id']
+
+        key = message['key']
+        rpc_id = message['rpc_id']
+        if str(key) in self.server.node_manager.data:
+            value = self.server.node_manager.data[str(key)]
+            self.server.node_manager.found_value(key, value, rpc_id, socket, client_node_id, (client_ip, client_port))
+        else:
+            nearest_nodes = self.server.node_manager.buckets.nearest_nodes(key)
+            if not nearest_nodes:
+                nearest_nodes.append(self.server.node_manager.client)
+            nearest_nodes_triple = [node.triple() for node in nearest_nodes]
+            self.server.node_manager.found_neighbors(key, rpc_id, nearest_nodes_triple, socket, client_node_id,
+                                                     (client_ip, client_port))
 
     def handle_found_value(self, message):
         print '[Info] handle found value', message
+        rpc_id = message['rpc_id']
+        value = message['value']
+        rpc_nearest_nodes = self.server.node_manager.rpc_ids[rpc_id]
+        del self.server.node_manager.rpc_ids[rpc_id]
+        rpc_nearest_nodes.set_target_value(value)
 
     def handle_store(self, message):
         print '[Info] handle store', message
+        key = message['key']
+        value = message['value']
+        self.server.node_manager.data[str(key)] = value
+        print '[Info] ', self.server.node_manager.client, self.server.node_manager.data
 
 
-class Server(SocketServer.ThreadingMixIn, SocketServer.UDPServer):
+class Server(SocketServer.ThreadingUDPServer):
     """
     接收消息，并做相应处理
     """
@@ -185,11 +211,14 @@ class NodeManager(object):
             self.node_id = id
         self.address = (self.ip, self.port)
         self.buckets = KBucketSet(self.node_id)
-        self.rpc_ids = {}
+        # 每个消息都有一个唯一的rpc_id，用于标识节点之间的通信（该rpc_id由发起方生成，并由接收方返回），
+        # 这样可以避免节点收到多个从同一个节点发送的消息时无法区分
+        self.rpc_ids = {}  # rpc_ids被多个线程共享，需要加锁
 
         self.server = Server(self.address, RequestHandler)
         self.port = self.server.server_address[1]
         self.client = Node(self.ip, self.port, self.node_id)
+        self.data = {}
 
         self.server.node_manager = self
 
@@ -240,22 +269,22 @@ class NodeManager(object):
         print '[Info] send store', msg
         self.client.store(sock, target_node_address, msg)
 
-    def iterative_find_nodes(self, target_node, seed_node=None):
+    def iterative_find_nodes(self, key, seed_node=None):
         """
         找到距离目标节点最近的K个节点
         :param server_node_id:
         :param seed_nodes:
         :return:
         """
-        print '[Info] iterative find nodes:', target_node, seed_node
-        rpc_nearest_nodes = RPCNearestNodes(target_node.node_id)
-        rpc_nearest_nodes.update(self.buckets.nearest_nodes(target_node.node_id))
+        print '[Info] iterative find nodes:', key, seed_node
+        rpc_nearest_nodes = RPCNearestNodes(key)
+        rpc_nearest_nodes.update(self.buckets.nearest_nodes(key))
         if seed_node:
             rpc_id = self.__get_rpc_id()
             self.rpc_ids[rpc_id] = rpc_nearest_nodes
-            self.find_neighbors(target_node.node_id, rpc_id, self.server.socket, target_node.node_id,
+            self.find_neighbors(key, rpc_id, self.server.socket, key,
                                 (seed_node.ip, seed_node.port))
-            # time.sleep(5)
+
         while (not rpc_nearest_nodes.is_complete()) or seed_node:  # 循环迭代直至距离目标节点最近的K个节点都找出来
             # 限制同时向ALPHA(3)个邻近节点发送FIND NODE请求
             unvisited_nearest_nodes = rpc_nearest_nodes.get_unvisited_nearest_nodes(constant.ALPHA)
@@ -263,12 +292,29 @@ class NodeManager(object):
                 rpc_nearest_nodes.mark(node)
                 rpc_id = self.__get_rpc_id()
                 self.rpc_ids[rpc_id] = rpc_nearest_nodes
-                self.find_neighbors(target_node.node_id, rpc_id, self.server.socket, target_node.node_id,
+                self.find_neighbors(key, rpc_id, self.server.socket, key,
                                     (node.ip, node.port))
             time.sleep(1)
             seed_node = None
 
         return rpc_nearest_nodes.get_result_nodes()
+
+    def iterative_find_value(self, key):
+        print '[Info] iterative find value:', key
+        rpc_nearest_nodes = RPCNearestNodes(key)
+        rpc_nearest_nodes.update(self.buckets.nearest_nodes(key))
+        while not rpc_nearest_nodes.is_complete():
+            # 限制同时向ALPHA(3)个邻近节点发送FIND NODE请求
+            unvisited_nearest_nodes = rpc_nearest_nodes.get_unvisited_nearest_nodes(constant.ALPHA)
+            for node in unvisited_nearest_nodes:
+                rpc_nearest_nodes.mark(node)
+                rpc_id = self.__get_rpc_id()
+                self.rpc_ids[rpc_id] = rpc_nearest_nodes
+                self.find_value(key, rpc_id, self.server.socket, node.node_id, (node.ip, node.port))
+
+            time.sleep(1)
+
+        return rpc_nearest_nodes.get_target_value()
 
     def bootstrap(self, seed_nodes=[]):
         """
@@ -278,11 +324,11 @@ class NodeManager(object):
         """
         print '[Info] bootstrap', seed_nodes
         for seed_node in seed_nodes:
-            self.iterative_find_nodes(self.client, seed_node)
+            self.iterative_find_nodes(self.client.node_id, seed_node)
 
         if len(seed_nodes) == 0:
             for seed_node in self.buckets.get_all_nodes():
-                self.iterative_find_nodes(self.client, seed_node)
+                self.iterative_find_nodes(self.client.node_id, seed_node)
 
     def __hash_function(self, key):
         return int(hashlib.md5(key.encode('ascii')).hexdigest(), 16)
@@ -292,6 +338,13 @@ class NodeManager(object):
 
     def __random_id(self):
         return random.randint(0, (2 ** constant.BITS) - 1)
+
+    def refresh_buckets(self):
+        # TODO
+        # buckets在15分钟内节点未改变过需要进行refresh操作（对buckets中的每个节点发起find node操作）
+        # 如果所有节点都有返回响应，则该buckets不需要经常更新
+        # 如果有节点没有返回响应，则该buckets需要定期更新保证buckets的完整性
+        pass
 
     def set_data(self, key, value):
         """
@@ -305,12 +358,30 @@ class NodeManager(object):
         :return:
         """
         data_key = self.__hash_function(key)
+        k_nearest_ndoes = self.iterative_find_nodes(data_key)
+        print '[info] set data, k nearest nodes:', k_nearest_ndoes
+        if not k_nearest_ndoes:
+            self.data[str(data_key)] = value
+        for node in k_nearest_ndoes:
+            self.store(data_key, value, self.server.socket, node.node_id, (node.ip, node.port))
 
-    def get_data(self, key, value):
+    def get_data(self, key):
         """
         读取数据
+        1.当前节点收到查询数据的请求(获取key对应的value)
+        2.当前节点首先检测自己是否保存了该数据，如果有则返回key对应的value
+        3.如果当前节点没有保存该数据，则计算获取距离key值最近的K个节点，分别向这K个节点发送FIND VALUE的操作进行查询
+        4.收到FIND VALUE请求操作的节点也进行上述(2)~(3)的过程（递归处理）
         :param key:
         :param value:
         :return:
         """
-        pass
+        data_key = self.__hash_function(key)
+        if str(data_key) in self.data:
+            return self.data[str(data_key)]
+        value = self.iterative_find_value(data_key)
+        if value:
+            return value
+        else:
+            raise KeyError
+

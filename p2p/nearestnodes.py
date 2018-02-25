@@ -16,6 +16,12 @@ class RPCNearestNodes(object):
         self.lock = threading.Lock()
         self.target_value = None
 
+    def set_target_value(self, value):
+        self.target_value = value
+
+    def get_target_value(self):
+        return self.target_value
+
     def update(self, nodes):
         """
         更新距离key值最近的K个节点
@@ -81,10 +87,13 @@ class RPCNearestNodes(object):
         2.找到距离目标节点最近的K个节点（这K个节点都访问过）
         :return:
         """
-        if self.target_value:
-            return True
-
         with self.lock:
+            if self.target_value:
+                return True
+
+            if len(self.list) == 0:
+                return False
+
             for node, flag in self.list:
                 if not flag:
                     return False
