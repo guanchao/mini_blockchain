@@ -37,8 +37,9 @@ def mine():
     response = {
         'message': 'New Block Forged',
         'index': block.index,
-        'transactions': block.transactions,
-        'proof': block.proof,
+        # 'transactions': block.transactions,
+        'merkleroot' : block.merkletrees.get_root_leaf(),
+        'nonce': block.nonce,
         'previous_hash': block.previous_hash
     }
     return jsonify(response), 200

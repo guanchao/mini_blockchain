@@ -1,7 +1,9 @@
 # coding:utf-8
+import json
+
 
 class Block(object):
-    def __init__(self, index, previous_hash, timestamp, data, proof, current_hash):
+    def __init__(self, index, previous_hash, timestamp, data, nonce, current_hash):
         """
         区块结构
         :param previous_hash: <str> 前一区块地址
@@ -15,8 +17,9 @@ class Block(object):
         self.previous_hash = previous_hash
         self.timestamp = timestamp
         self.data = data
-        self.proof = proof
+        self.nonce = nonce
         self.current_hash = current_hash
+        self.merkletrees = None
 
         # body
         self.transactions = None
@@ -27,7 +30,9 @@ class Block(object):
             "previous_hash": self.previous_hash,
             "timestamp": self.timestamp,
             "data": self.data,
-            "proof": self.proof,
+            "nonce": self.nonce,
             "current_hash": self.current_hash,
-            "transactions": self.transactions
+            "merkletrees": json.dumps(self.merkletrees.get_transaction_tree()),
+            "merkleroot" : self.merkletrees.get_root_leaf()
         }
+

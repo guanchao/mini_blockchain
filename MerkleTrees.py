@@ -1,4 +1,5 @@
 # coding:utf-8
+import base64
 import hashlib, json
 
 from collections import OrderedDict
@@ -8,6 +9,7 @@ class MerkleTrees(object):
     def __init__(self, transaction_list=None):
         self.transaction_list = transaction_list
         self.transaction_tree = OrderedDict()
+        self.create_tree()
 
     def create_tree(self):
         transaction_list = self.transaction_list
@@ -24,6 +26,9 @@ class MerkleTrees(object):
                 else:
                     right_leaf = transaction_list[index]
 
+                left_leaf = base64.b64encode(json.dumps(left_leaf))
+                right_leaf = base64.b64encode(json.dumps(right_leaf))
+
                 left_leaf_hash = hashlib.sha256(left_leaf).hexdigest()  # 左边叶子节点的哈希值
                 right_leaf_hash = hashlib.sha256(right_leaf).hexdigest()  # 右边叶子节点的哈希值
 
@@ -39,8 +44,10 @@ class MerkleTrees(object):
             self.create_tree()
         else:
             root_leaf = transaction_list[0]
+            root_leaf = base64.b64encode(json.dumps(root_leaf))
+
             root_leaf_hash = hashlib.sha256(root_leaf).hexdigest()
-            transaction_tree[transaction_list[0]] = root_leaf_hash
+            transaction_tree[root_leaf] = root_leaf_hash
             self.transaction_tree = transaction_tree
 
     def get_transaction_tree(self):
@@ -50,18 +57,22 @@ class MerkleTrees(object):
         last_key = self.transaction_tree.keys()[-1]
         return self.transaction_tree[last_key]
 
-# if __name__ == "__main__":
-#     # Test
-#     transaction = ['a', 'b']
-#     tree = MerkleTrees(transaction)
-#     tree.create_tree()
-#     transaction_tree = tree.get_transaction_tree()
-#     print 'Root of the tree:', tree.get_root_leaf()
-#     print(json.dumps(transaction_tree, indent=4))
+if __name__ == "__main__":
+    # Test
+    # transaction = ['aaaa']
+    transaction = [{
+        'sender': '0000000000000000000000000000000000000000000000000000000000000000',
+        'receiver': 123123,
+        'amount': 10
+    }]
+    tree = MerkleTrees(transaction)
+    transaction_tree = tree.get_transaction_tree()
+    print 'Root of the tree:', tree.get_root_leaf()
+    print(json.dumps(transaction_tree, indent=4))
 #
 #     print '----------------------------------------------'
 #
-#     transaction = ['a', 'b', 'c']
+#     transaction = ['aaaa', 'bbbbb', 'ccccc']
 #     tree = MerkleTrees(transaction)
 #     tree.create_tree()
 #     transaction_tree = tree.get_transaction_tree()
