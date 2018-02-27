@@ -8,6 +8,7 @@ from collections import OrderedDict
 class MerkleTrees(object):
     def __init__(self, transaction_list=None):
         self.transaction_list = transaction_list
+        self.transactions = transaction_list
         self.transaction_tree = OrderedDict()
         self.create_tree()
 
@@ -52,6 +53,9 @@ class MerkleTrees(object):
 
     def get_transaction_tree(self):
         return self.transaction_tree
+
+    def get_transaction_list(self):
+        return self.transactions
 
     def get_root_leaf(self):
         last_key = self.transaction_tree.keys()[-1]

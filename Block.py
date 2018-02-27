@@ -32,7 +32,7 @@ class Block(object):
             "data": self.data,
             "nonce": self.nonce,
             "current_hash": self.current_hash,
-            "merkletrees": json.dumps(self.merkletrees.get_transaction_tree()),
+            "transactions": self.merkletrees.get_transaction_list(),
             "merkleroot" : self.merkletrees.get_root_leaf()
         }
 
