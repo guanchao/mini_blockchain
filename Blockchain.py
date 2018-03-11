@@ -89,13 +89,14 @@ class Blockchain(object):
 
         return next_block
 
-    # def new_transaction(self, sender, receiver, amount):
-    #     self.current_transactions.append({
-    #         'sender': sender,
-    #         'receiver': receiver,
-    #         'amount': amount
-    #     })
-    #     return self.chain[-1].index + 1
+    def get_balance(self, address):
+        """
+        获取address地址的余额
+        :param address:
+        :return:
+        """
+        balance, _ = self.find_spendalbe_outputs(address)
+        return balance
 
     def new_utxo_transaction(self, from_addr, to_addr, amount):
         """
@@ -140,7 +141,7 @@ class Blockchain(object):
         :return:
         """
         unspent_txout_list = list()
-        spent_txout_list = list()
+        spent_txout_list = dict()
         balance = 0
 
         # Step1:获取from_addr下可以未使用过的TxOutput
@@ -158,16 +159,17 @@ class Blockchain(object):
                         if txin.can_unlock_txoutput_with(from_addr):
                             spent_txid = txin.prev_txid
                             spent_tx_out_idx = txin.prev_tx_out_idx
-                            if not spent_txid in spent_txout_list:
+                            if not spent_txout_list.has_key(spent_txid):
                                 spent_txout_list[spent_txid] = list()
                             spent_txout_list[spent_txid].append(spent_tx_out_idx)
 
                 # 3.遍历某个交易下所有的未使用过的TxOutput
-                if txid not in spent_txout_list:
+                if not spent_txout_list.has_key(txid):
                     for out_idx in range(len(tx.txouts)):
                         txout = tx.txouts[out_idx]
-                        txout.can_be_unlocked_with(from_addr)
-                        unspent_txout_list.append((txid, out_idx, txout))
+
+                        if txout.can_be_unlocked_with(from_addr):
+                            unspent_txout_list.append((txid, out_idx, txout))
 
         # Step2：计算这些未使用过的TxOutput货币之和
         for txid, out_idx, txout in unspent_txout_list:
@@ -265,8 +267,4 @@ class Blockchain(object):
             return False
         return True
 
-    # def get_full_chain(self):
-    #     output_chain_list = []
-    #     for i in range(len(self.chain)):
-    #         output_chain_list.append(str(self.chain[i]))
-    #     return output_chain_list
+

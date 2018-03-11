@@ -68,7 +68,18 @@ def new_transaction():
         response = {'message': 'Transaction will be added to Block' + str(index)}
     else:
         response = {'message': "Not enough funds!"}
-    return jsonify(response), 201
+    return jsonify(response), 200
+
+
+@app.route('/balance', methods=['GET'])
+def get_balance():
+    address = request.args.get('address')
+    response = {
+        'address': address,
+        'balance': blockchain.get_balance(address)
+    }
+    return jsonify(response), 200
+
 
 if __name__ == '__main__':
     from argparse import ArgumentParser

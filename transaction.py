@@ -26,7 +26,7 @@ class Transaction(object):
         coinbase不存在输入，txins为None
         :return:
         """
-        return self.txins == None
+        return self.txins[0].prev_txid == None
 
     def __str__(self):
         return json.dumps(self, default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
