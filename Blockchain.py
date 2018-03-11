@@ -5,21 +5,12 @@ from uuid import uuid4
 
 from Block import Block
 from MerkleTrees import MerkleTrees
+from util import *
 
 try:
     from urllib.parse import urlparse
 except ImportError:
     from urlparse import urlparse
-
-
-def caculate_hash(index, previous_hash, timestamp, data, nonce):
-    value = str(index) + str(previous_hash) + str(timestamp) + str(data) + str(nonce)
-    sha = hashlib.sha256(value.encode('utf-8'))
-    return str(sha.hexdigest())
-
-
-def caculate_block_hash(block):
-    return caculate_hash(block.index, block.previous_hash, block.timestamp, block.data, block.nonce)
 
 
 class Blockchain(object):
@@ -32,41 +23,55 @@ class Blockchain(object):
         # 创世区块
         self.chain.append(self.get_genius_block())
 
-
     def get_genius_block(self):
         transactions = [{
             'sender': '0000000000000000000000000000000000000000000000000000000000000000',
             'receiver': self.node_identifier,
             'amount': 10
         }]
-
+        merkletrees = MerkleTrees(transactions)
+        merkleroot = merkletrees.get_root_leaf()
         nonce = 0
-        genish_block_hash = caculate_hash(0, '0000000000000000000000000000000000000000000000000000000000000000',
-                                          '1496518102.896031', 'This is genius block!', nonce)
-        while genish_block_hash[0:self.difficulty] != '0' * self.difficulty:
-            genish_block_hash = caculate_hash(0, '0000000000000000000000000000000000000000000000000000000000000000',
-                                              '1496518102.896031', 'This is genius block!', nonce)
-            nonce += 1
 
-        genius_block = Block(0, '0000000000000000000000000000000000000000000000000000000000000000', '1496518102.896031',
-                     'This is genius block!', nonce, genish_block_hash)
-        genius_block.merkletrees = MerkleTrees(transactions)
+        genish_block_hash = calculate_hash(index=0,
+                                          previous_hash='0000000000000000000000000000000000000000000000000000000000000000',
+                                          timestamp='1496518102.896031',
+                                          merkleroot=merkleroot,
+                                          nonce=nonce,
+                                          difficulty=self.difficulty)
+        while genish_block_hash[0:self.difficulty] != '0' * self.difficulty:
+            genish_block_hash = calculate_hash(index=0,
+                                              previous_hash='0000000000000000000000000000000000000000000000000000000000000000',
+                                              timestamp='1496518102.896031',
+                                              merkleroot=merkleroot,
+                                              nonce=nonce,
+                                              difficulty=self.difficulty)
+            nonce += 1
+        genius_block = Block(index=0,
+                             previous_hash='0000000000000000000000000000000000000000000000000000000000000000',
+                             timestamp='1496518102.896031',
+                             nonce=nonce,
+                             current_hash=genish_block_hash,
+                             difficulty=self.difficulty)
+        genius_block.merkleroot = merkleroot
+        genius_block.transactions = transactions
 
         return genius_block
 
-    def __generate_block(self, next_data, next_timestamp, next_nonce):
+    def __generate_block(self, merkleroot, next_timestamp, next_nonce):
         previous_block = self.get_last_block()
         next_index = previous_block.index + 1
         previous_hash = previous_block.current_hash
 
         next_block = Block(
-            next_index,
-            previous_hash,
-            next_timestamp,
-            next_data,
-            next_nonce,
-            caculate_hash(next_index, previous_hash, next_timestamp, next_data, next_nonce)
+            index=next_index,
+            previous_hash=previous_hash,
+            timestamp=next_timestamp,
+            nonce=next_nonce,
+            current_hash=calculate_hash(next_index, previous_hash, next_timestamp, merkleroot, next_nonce, self.difficulty),
+            difficulty=self.difficulty
         )
+        next_block.merkleroot = merkleroot
 
         return next_block
 
@@ -85,11 +90,17 @@ class Blockchain(object):
         new_block_found = False
         new_block_attempt = None
 
+        merkletrees = MerkleTrees(self.current_transactions)
+        merkleroot = merkletrees.get_root_leaf()
         while not new_block_found:
-            new_block_attempt = self.__generate_block("Mine block", timestamp, nonce)
             # print "["+str(nonce)+"]", new_block_attempt.current_hash
+            previous_block = self.get_last_block()
+            next_index = previous_block.index + 1
+            previous_hash = previous_block.current_hash
+            cal_hash = calculate_hash(next_index, previous_hash, timestamp, merkleroot, nonce, self.difficulty)
 
-            if new_block_attempt.current_hash[0:self.difficulty] == '0' * self.difficulty:
+            if cal_hash[0:self.difficulty] == '0' * self.difficulty:
+                new_block_attempt = self.__generate_block(merkleroot, timestamp, nonce)
                 end_timestamp = time()
                 cos_timestamp = end_timestamp - timestamp
                 print('New block found with nonce ' + str(nonce) + ' in ' + str(round(cos_timestamp, 2)) + ' seconds.')
@@ -105,7 +116,7 @@ class Blockchain(object):
                 # 添加到区块链中
                 # 将所有交易保存成Merkle树
                 new_block_attempt.transactions = self.current_transactions
-                new_block_attempt.merkletrees = MerkleTrees(self.current_transactions)
+                new_block_attempt.merkleroot = merkleroot
                 self.chain.append(new_block_attempt)
                 self.current_transactions = []
 
@@ -138,7 +149,7 @@ class Blockchain(object):
             return False
         elif block1.timestamp != block2.timestamp:
             return False
-        elif hashlib.sha256(block1.data).hexdigest() != hashlib.sha256(block2.data).hexdigest():
+        elif block1.merkleroot != block2.merkleroot:
             return False
         elif block1.current_hash != block2.current_hash:
             return False

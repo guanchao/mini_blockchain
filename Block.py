@@ -1,25 +1,24 @@
 # coding:utf-8
-import json
-
 
 class Block(object):
-    def __init__(self, index, previous_hash, timestamp, data, nonce, current_hash):
+    def __init__(self, index, previous_hash, timestamp, nonce, current_hash, difficulty):
         """
         区块结构
+        :param index: <int> 区块索引
         :param previous_hash: <str> 前一区块地址
-        :param hash: <str> 当前区块的目标哈希值
-        :param version: <int> 当前版本号
+        :param timestamp: <str> 时间戳
         :param nonce: <str> 当前区块POW共识过程的解随机数
-        :param merkle_root: <object> 保存交易当前区块交易数据树结构
+        :param current_hash: <str> 当前区块的目标哈希值
+        :param difficulty: <int> 难度系数
         """
         # header
         self.index = index
         self.previous_hash = previous_hash
         self.timestamp = timestamp
-        self.data = data
         self.nonce = nonce
         self.current_hash = current_hash
-        self.merkletrees = None
+        self.difficulty = difficulty
+        self.merkleroot = None
 
         # body
         self.transactions = None
@@ -29,10 +28,9 @@ class Block(object):
             "index": self.index,
             "previous_hash": self.previous_hash,
             "timestamp": self.timestamp,
-            "data": self.data,
             "nonce": self.nonce,
+            "difficulty": self.difficulty,
             "current_hash": self.current_hash,
-            "transactions": self.merkletrees.get_transaction_list(),
-            "merkleroot" : self.merkletrees.get_root_leaf()
+            "transactions": self.transactions,
+            "merkleroot": self.merkleroot
         }
-

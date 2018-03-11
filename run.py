@@ -37,8 +37,8 @@ def mine():
     response = {
         'message': 'New Block Forged',
         'index': block.index,
-        # 'transactions': block.transactions,
-        'merkleroot' : block.merkletrees.get_root_leaf(),
+        'transactions': block.transactions,
+        'merkleroot' : block.merkleroot,
         'nonce': block.nonce,
         'previous_hash': block.previous_hash
     }
