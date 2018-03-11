@@ -32,18 +32,18 @@ blockchain = Blockchain()
 print "Node id: %s" % blockchain.node_id
 
 
-@app.route('/mine', methods=['GET'])
-def mine():
-    block = blockchain.do_mine()
-    json_output = json.dumps({
-        'message': 'New Block Forged',
-        'index': block.index,
-        'transactions': block.transactions,
-        'merkleroot': block.merkleroot,
-        'nonce': block.nonce,
-        'previous_hash': block.previous_hash
-    }, default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
-    return json_output, 200
+# @app.route('/mine', methods=['GET'])
+# def mine():
+#     block = blockchain.do_mine()
+#     json_output = json.dumps({
+#         'message': 'New Block Forged',
+#         'index': block.index,
+#         'transactions': block.transactions,
+#         'merkleroot': block.merkleroot,
+#         'nonce': block.nonce,
+#         'previous_hash': block.previous_hash
+#     }, default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
+#     return json_output, 200
 
 
 @app.route('/chain', methods=['GET'])
@@ -65,10 +65,20 @@ def new_transaction():
     # Create a new Transaction
     index = blockchain.new_utxo_transaction(values['sender'], values['receiver'], values['amount'])
     if index >= 0:
-        response = {'message': 'Transaction will be added to Block' + str(index)}
+        block = blockchain.do_mine()
+        json_output = json.dumps({
+            'message': 'Success! Transaction was added to Block' + str(index),
+            'index': block.index,
+            'transactions': block.transactions,
+            'merkleroot': block.merkleroot,
+            'nonce': block.nonce,
+            'previous_hash': block.previous_hash
+        }, default=lambda obj: obj.__dict__, indent=4)
+        return json_output, 200
+
     else:
         response = {'message': "Not enough funds!"}
-    return jsonify(response), 200
+        return jsonify(response), 200
 
 
 @app.route('/balance', methods=['GET'])

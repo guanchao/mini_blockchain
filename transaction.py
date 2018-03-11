@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+from time import time
 
 
 class Transaction(object):
@@ -14,10 +15,11 @@ class Transaction(object):
         """
         self.txins = txins
         self.txouts = txouts
+        self.timestamp = time()
         self.txid = self.get_txid()
 
     def get_txid(self):
-        value = ",".join(str(txin) for txin in self.txins) + ",".join(str(txout) for txout in self.txouts)
+        value = str(self.timestamp) + ",".join(str(txin) for txin in self.txins) + ",".join(str(txout) for txout in self.txouts)
         sha = hashlib.sha256(value.encode('utf-8'))
         return str(sha.hexdigest())
 
