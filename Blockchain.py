@@ -141,7 +141,7 @@ class Blockchain(object):
         :return:
         """
         unspent_txout_list = list()
-        spent_txout_list = dict()
+        spent_txout_list = list()
         balance = 0
 
         # Step1:获取from_addr下可以未使用过的TxOutput
@@ -159,12 +159,10 @@ class Blockchain(object):
                         if txin.can_unlock_txoutput_with(from_addr):
                             spent_txid = txin.prev_txid
                             spent_tx_out_idx = txin.prev_tx_out_idx
-                            if not spent_txout_list.has_key(spent_txid):
-                                spent_txout_list[spent_txid] = list()
-                            spent_txout_list[spent_txid].append(spent_tx_out_idx)
+                            spent_txout_list.append(spent_txid)
 
                 # 3.遍历某个交易下所有的未使用过的TxOutput
-                if not spent_txout_list.has_key(txid):
+                if not txid in spent_txout_list:
                     for out_idx in range(len(tx.txouts)):
                         txout = tx.txouts[out_idx]
 
