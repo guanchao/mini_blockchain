@@ -4,6 +4,8 @@ import hashlib, json
 
 from collections import OrderedDict
 
+from transaction import *
+
 
 class MerkleTrees(object):
     def __init__(self, transaction_list=None):
@@ -27,8 +29,8 @@ class MerkleTrees(object):
                 else:
                     right_leaf = transaction_list[index]
 
-                left_leaf = base64.b64encode(json.dumps(left_leaf))
-                right_leaf = base64.b64encode(json.dumps(right_leaf))
+                left_leaf = left_leaf.txid
+                right_leaf = right_leaf.txid
 
                 left_leaf_hash = hashlib.sha256(left_leaf).hexdigest()  # 左边叶子节点的哈希值
                 right_leaf_hash = hashlib.sha256(right_leaf).hexdigest()  # 右边叶子节点的哈希值
@@ -45,7 +47,10 @@ class MerkleTrees(object):
             self.create_tree()
         else:
             root_leaf = transaction_list[0]
-            root_leaf = base64.b64encode(json.dumps(root_leaf))
+            if isinstance(root_leaf, Transaction):
+                root_leaf = root_leaf.txid
+            else:
+                root_leaf = root_leaf
 
             root_leaf_hash = hashlib.sha256(root_leaf).hexdigest()
             transaction_tree[root_leaf] = root_leaf_hash
@@ -61,24 +66,38 @@ class MerkleTrees(object):
         last_key = self.transaction_tree.keys()[-1]
         return self.transaction_tree[last_key]
 
-if __name__ == "__main__":
-    # Test
-    # transaction = ['aaaa']
-    transaction = [{
-        'sender': '0000000000000000000000000000000000000000000000000000000000000000',
-        'receiver': 123123,
-        'amount': 10
-    }]
-    tree = MerkleTrees(transaction)
-    transaction_tree = tree.get_transaction_tree()
-    print 'Root of the tree:', tree.get_root_leaf()
-    print(json.dumps(transaction_tree, indent=4))
+    def find_unspent_transactions(self, address):
+        for transaction in self.get_transaction_list():
+            print transaction
+
+    def find_spendalbe_outputs(self, from_addr, amount):
+        for block in self.chain:
+            print block
+
+
+# if __name__ == "__main__":
+#     transactions = []
+#     input = TxInput(None, -1, "Reward to 123456")
+#     output = TxOutput(10, "123456")
+#     print str(input)
+#     print str(output)
 #
-#     print '----------------------------------------------'
+#     tx = Transaction([input], [output])
+#     transactions.append(tx)
+#     print str(tx)
 #
-#     transaction = ['aaaa', 'bbbbb', 'ccccc']
-#     tree = MerkleTrees(transaction)
-#     tree.create_tree()
+#     tree = MerkleTrees(transactions)
 #     transaction_tree = tree.get_transaction_tree()
 #     print 'Root of the tree:', tree.get_root_leaf()
 #     print(json.dumps(transaction_tree, indent=4))
+# #
+#     print '----------------------------------------------'
+#     tx2 = Transaction([TxInput(None, -1, "Reward to 654321")], [TxOutput(20, "654321")])
+#     transactions.append(tx2)
+#     tree2 = MerkleTrees(transactions)
+#     tree2.create_tree()
+#     transaction_tree2 = tree2.get_transaction_tree()
+#     print 'Root of the tree:', tree2.get_root_leaf()
+#     print(json.dumps(transaction_tree2, indent=4))
+#
+#     print str(tx)

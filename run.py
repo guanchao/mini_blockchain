@@ -1,4 +1,5 @@
 # coding:utf-8
+import json
 from flask import Flask, jsonify, request
 
 from Blockchain import Blockchain
@@ -28,30 +29,30 @@ TODO:
 app = Flask(__name__)
 
 blockchain = Blockchain()
+print "Node id: %s" % blockchain.node_id
 
 
 @app.route('/mine', methods=['GET'])
 def mine():
     block = blockchain.do_mine()
-
-    response = {
+    json_output = json.dumps({
         'message': 'New Block Forged',
         'index': block.index,
         'transactions': block.transactions,
-        'merkleroot' : block.merkleroot,
+        'merkleroot': block.merkleroot,
         'nonce': block.nonce,
         'previous_hash': block.previous_hash
-    }
-    return jsonify(response), 200
+    }, default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
+    return json_output, 200
 
 
 @app.route('/chain', methods=['GET'])
 def full_chain():
-    response = {
-        'chain': blockchain.get_full_chain(),
+    json_output = json.dumps({
+        'chain': blockchain.chain,
         'length': len(blockchain.chain)
-    }
-    return jsonify(response), 200
+    }, default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
+    return json_output, 200
 
 
 @app.route('/transactions/new', methods=['POST'])
@@ -62,10 +63,12 @@ def new_transaction():
         return 'Missing values', 400
 
     # Create a new Transaction
-    index = blockchain.new_transaction(values['sender'], values['receiver'], values['amount'])
-    response = {'message': 'Transaction will be added to Block' + str(index)}
+    index = blockchain.new_utxo_transaction(values['sender'], values['receiver'], values['amount'])
+    if index >= 0:
+        response = {'message': 'Transaction will be added to Block' + str(index)}
+    else:
+        response = {'message': "Not enough funds!"}
     return jsonify(response), 201
-
 
 if __name__ == '__main__':
     from argparse import ArgumentParser

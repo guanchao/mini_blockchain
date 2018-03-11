@@ -5,6 +5,7 @@ from uuid import uuid4
 
 from Block import Block
 from MerkleTrees import MerkleTrees
+from transaction import *
 from util import *
 
 try:
@@ -15,37 +16,38 @@ except ImportError:
 
 class Blockchain(object):
     def __init__(self):
-        self.difficulty = 5
+        self.difficulty = 4
         self.chain = []
         self.current_transactions = []
         # Generate a globally unique address for this node
-        self.node_identifier = str(uuid4()).replace('-', '')
+        self.node_id = str(uuid4()).replace('-', '')
         # 创世区块
         self.chain.append(self.get_genius_block())
 
     def get_genius_block(self):
-        transactions = [{
-            'sender': '0000000000000000000000000000000000000000000000000000000000000000',
-            'receiver': self.node_identifier,
-            'amount': 10
-        }]
+        # coinbase_tx = self.new_coinbase_tx(self.node_id)
+        txin = TxInput(None, -1, "Genius block!")
+        txoutput = TxOutput(10, self.node_id)
+        coinbase_tx = Transaction([txin], [txoutput])
+        transactions = [coinbase_tx]
+
         merkletrees = MerkleTrees(transactions)
         merkleroot = merkletrees.get_root_leaf()
         nonce = 0
 
         genish_block_hash = calculate_hash(index=0,
-                                          previous_hash='0000000000000000000000000000000000000000000000000000000000000000',
-                                          timestamp='1496518102.896031',
-                                          merkleroot=merkleroot,
-                                          nonce=nonce,
-                                          difficulty=self.difficulty)
+                                           previous_hash='0000000000000000000000000000000000000000000000000000000000000000',
+                                           timestamp='1496518102.896031',
+                                           merkleroot=merkleroot,
+                                           nonce=nonce,
+                                           difficulty=self.difficulty)
         while genish_block_hash[0:self.difficulty] != '0' * self.difficulty:
             genish_block_hash = calculate_hash(index=0,
-                                              previous_hash='0000000000000000000000000000000000000000000000000000000000000000',
-                                              timestamp='1496518102.896031',
-                                              merkleroot=merkleroot,
-                                              nonce=nonce,
-                                              difficulty=self.difficulty)
+                                               previous_hash='0000000000000000000000000000000000000000000000000000000000000000',
+                                               timestamp='1496518102.896031',
+                                               merkleroot=merkleroot,
+                                               nonce=nonce,
+                                               difficulty=self.difficulty)
             nonce += 1
         genius_block = Block(index=0,
                              previous_hash='0000000000000000000000000000000000000000000000000000000000000000',
@@ -58,7 +60,18 @@ class Blockchain(object):
 
         return genius_block
 
-    def __generate_block(self, merkleroot, next_timestamp, next_nonce):
+    def new_coinbase_tx(self, to_addr):
+        """
+        创世块，区块的第一笔交易，用于奖励矿工
+        :param to_addr: 接收地址
+        :return: <Transaction>对象
+        """
+        txin = TxInput(None, -1, "Reward to " + to_addr)
+        txoutput = TxOutput(10, to_addr)
+        tx = Transaction([txin], [txoutput])
+        return tx
+
+    def generate_block(self, merkleroot, next_timestamp, next_nonce):
         previous_block = self.get_last_block()
         next_index = previous_block.index + 1
         previous_hash = previous_block.current_hash
@@ -68,20 +81,100 @@ class Blockchain(object):
             previous_hash=previous_hash,
             timestamp=next_timestamp,
             nonce=next_nonce,
-            current_hash=calculate_hash(next_index, previous_hash, next_timestamp, merkleroot, next_nonce, self.difficulty),
+            current_hash=calculate_hash(next_index, previous_hash, next_timestamp, merkleroot, next_nonce,
+                                        self.difficulty),
             difficulty=self.difficulty
         )
         next_block.merkleroot = merkleroot
 
         return next_block
 
-    def new_transaction(self, sender, receiver, amount):
-        self.current_transactions.append({
-            'sender': sender,
-            'receiver': receiver,
-            'amount': amount
-        })
+    # def new_transaction(self, sender, receiver, amount):
+    #     self.current_transactions.append({
+    #         'sender': sender,
+    #         'receiver': receiver,
+    #         'amount': amount
+    #     })
+    #     return self.chain[-1].index + 1
+
+    def new_utxo_transaction(self, from_addr, to_addr, amount):
+        """
+        from_addr向to_addr发送amount量的货币，步骤：
+        Step1：首先获取from_addr下未使用过的TxOutput输出
+        Step2：获取上一步TxOutput列表中value之和sum，并与amount相比
+        Step3：如果sum<amount，则标识from_addr余额不够，无法交易；如果sum>=amount，则from_addr足够余额用于交易，多出的部分用于找零
+        Step4：构造Transaction对象，并传入此次交易的输入和输出
+        Step5：TODO 广播
+        :param from_addr:
+        :param to_addr:
+        :param amount:
+        :return:
+        """
+        inputs = list()
+        outputs = list()
+        balance, unspent_txout_list = self.find_spendalbe_outputs(from_addr)
+        if balance < amount:
+            return -1
+
+        # 构造Tx的输入
+        for txid, out_idx, txout in unspent_txout_list:
+            txin = TxInput(txid, out_idx, from_addr)
+            inputs.append(txin)
+
+        # 构造Tx的输出
+        txout = TxOutput(amount, to_addr)
+        outputs.append(txout)
+        if balance > amount:
+            # 找零
+            # TODO 交易费
+            outputs.append(TxOutput(balance-amount, from_addr))
+
+        tx = Transaction(inputs, outputs)
+        self.current_transactions.append(tx)
         return self.chain[-1].index + 1
+
+    def find_spendalbe_outputs(self, from_addr):
+        """
+        获取from_addr可以用于交易的TxOutput（未使用过的），
+        :param from_addr:
+        :return:
+        """
+        unspent_txout_list = list()
+        spent_txout_list = list()
+        balance = 0
+
+        # Step1:获取from_addr下可以未使用过的TxOutput
+        for i in range(len(self.chain)):
+            block = self.chain[len(self.chain) - 1 - i]
+            # 1.获取区块下的所有的交易
+            transactions = block.get_transactions()
+            for tx in transactions:
+                txid = tx.txid  # 当前交易的id
+
+                # 2.遍历某个交易下所有的TxInput
+                if not tx.is_coinbase():
+                    # 记录当前tx下被from_addr被使用过的上一次交易的输出，即记录txid和out_idx
+                    for txin in tx.txins:
+                        if txin.can_unlock_txoutput_with(from_addr):
+                            spent_txid = txin.prev_txid
+                            spent_tx_out_idx = txin.prev_tx_out_idx
+                            if not spent_txid in spent_txout_list:
+                                spent_txout_list[spent_txid] = list()
+                            spent_txout_list[spent_txid].append(spent_tx_out_idx)
+
+                # 3.遍历某个交易下所有的未使用过的TxOutput
+                if txid not in spent_txout_list:
+                    for out_idx in range(len(tx.txouts)):
+                        txout = tx.txouts[out_idx]
+                        txout.can_be_unlocked_with(from_addr)
+                        unspent_txout_list.append((txid, out_idx, txout))
+
+        # Step2：计算这些未使用过的TxOutput货币之和
+        for txid, out_idx, txout in unspent_txout_list:
+            balance += txout.value
+
+        return balance, unspent_txout_list
+
 
     def do_mine(self):
         nonce = 0
@@ -100,18 +193,15 @@ class Blockchain(object):
             cal_hash = calculate_hash(next_index, previous_hash, timestamp, merkleroot, nonce, self.difficulty)
 
             if cal_hash[0:self.difficulty] == '0' * self.difficulty:
-                new_block_attempt = self.__generate_block(merkleroot, timestamp, nonce)
+                new_block_attempt = self.generate_block(merkleroot, timestamp, nonce)
                 end_timestamp = time()
                 cos_timestamp = end_timestamp - timestamp
                 print('New block found with nonce ' + str(nonce) + ' in ' + str(round(cos_timestamp, 2)) + ' seconds.')
 
                 # 给工作量证明的节点提供奖励
                 # 发送者为"0" 表明新挖出的币
-                self.new_transaction(
-                    sender='0',
-                    receiver=self.node_identifier,
-                    amount=10
-                )
+                coinbase_tx = self.new_coinbase_tx(self.node_id)
+                self.current_transactions.append(coinbase_tx)
 
                 # 添加到区块链中
                 # 将所有交易保存成Merkle树
@@ -130,7 +220,7 @@ class Blockchain(object):
         return self.chain[-1]
 
     def is_valid_chain(self, chain):
-        if not self.__is_same_block(chain[0], self.get_genius_block()):
+        if not self.is_same_block(chain[0], self.get_genius_block()):
             print('Genesis Block Incorrecet')
             return False
 
@@ -142,7 +232,7 @@ class Blockchain(object):
                 return False
         return True
 
-    def __is_same_block(self, block1, block2):
+    def is_same_block(self, block1, block2):
         if block1.index != block2.index:
             return False
         elif block1.previous_hash != block2.previous_hash:
@@ -163,7 +253,7 @@ class Blockchain(object):
         :param previous_block:
         :return:
         """
-        new_block_hash = caculate_block_hash(new_block)
+        new_block_hash = calculate_block_hash(new_block)
         if previous_block.index + 1 != new_block.index:
             print('Indices Do Not Match Up')
             return False
@@ -175,8 +265,8 @@ class Blockchain(object):
             return False
         return True
 
-    def get_full_chain(self):
-        output_chain_list = []
-        for i in range(len(self.chain)):
-            output_chain_list.append(self.chain[i].get_json_obj())
-        return output_chain_list
+    # def get_full_chain(self):
+    #     output_chain_list = []
+    #     for i in range(len(self.chain)):
+    #         output_chain_list.append(str(self.chain[i]))
+    #     return output_chain_list

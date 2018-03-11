@@ -1,5 +1,7 @@
 # coding:utf-8
 
+import json
+
 class Block(object):
     def __init__(self, index, previous_hash, timestamp, nonce, current_hash, difficulty):
         """
@@ -21,16 +23,26 @@ class Block(object):
         self.merkleroot = None
 
         # body
-        self.transactions = None
+        self.transactions = None # <Transaction>对象数组
 
-    def get_json_obj(self):
-        return {
-            "index": self.index,
-            "previous_hash": self.previous_hash,
-            "timestamp": self.timestamp,
-            "nonce": self.nonce,
-            "difficulty": self.difficulty,
-            "current_hash": self.current_hash,
-            "transactions": self.transactions,
-            "merkleroot": self.merkleroot
-        }
+    # def get_json_obj(self):
+    #     return {
+    #         "index": self.index,
+    #         "previous_hash": self.previous_hash,
+    #         "timestamp": self.timestamp,
+    #         "nonce": self.nonce,
+    #         "difficulty": self.difficulty,
+    #         "current_hash": self.current_hash,
+    #         "transactions": self.get_transactions_json_output(),
+    #         "merkleroot": self.merkleroot
+    #     }
+
+    def get_transactions(self):
+        return self.transactions
+
+    # def get_transactions_json_output(self):
+    #     return "[" + ",".join(str(tx) for tx in self.transactions) + "]"
+
+    def __str__(self):
+        return json.dumps(self, default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
+
