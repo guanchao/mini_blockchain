@@ -10,11 +10,12 @@ def calculate_hash(index, previous_hash, timestamp, merkleroot, nonce, difficult
 
 def calculate_block_hash(block):
     return calculate_hash(index=block.index,
-                         previous_hash=block.previous_hash,
-                         timestamp=block.timestamp,
-                         merkleroot=block.merkleroot,
-                         nonce=block.nonce,
+                          previous_hash=block.previous_hash,
+                          timestamp=block.timestamp,
+                          merkleroot=block.merkleroot,
+                          nonce=block.nonce,
                           difficulty=block.difficulty)
+
 
 def check_block(block):
     """
@@ -23,14 +24,19 @@ def check_block(block):
     :return:
     """
     cal_hash = calculate_hash(index=block.index,
-                         previous_hash=block.previous_hash,
-                         timestamp=block.timestamp,
-                         merkleroot=block.merkleroot,
-                         nonce=block.nonce,
-                          difficulty=block.difficulty)
+                              previous_hash=block.previous_hash,
+                              timestamp=block.timestamp,
+                              merkleroot=block.merkleroot,
+                              nonce=block.nonce,
+                              difficulty=block.difficulty)
 
     if (cal_hash[0:block.difficulty] == '0' * block.difficulty) \
             and (block.current_hash == calculate_block_hash(block)):
         return True
     else:
         return False
+
+
+def get_hash(data):
+    sha = hashlib.sha256(data)
+    return sha.hexdigest()

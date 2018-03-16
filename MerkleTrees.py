@@ -1,10 +1,8 @@
 # coding:utf-8
-import base64
-import hashlib, json
-
+import hashlib
 from collections import OrderedDict
 
-from transaction import *
+from transaction import Transaction
 
 
 class MerkleTrees(object):

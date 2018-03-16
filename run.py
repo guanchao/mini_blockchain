@@ -1,5 +1,6 @@
 # coding:utf-8
 import json
+
 from flask import Flask, jsonify, request
 
 from Blockchain import Blockchain
@@ -29,7 +30,7 @@ TODO:
 app = Flask(__name__)
 
 blockchain = Blockchain()
-print "Node id: %s" % blockchain.node_id
+print "Wallet address: %s" % blockchain.get_wallet_address()
 
 
 # @app.route('/mine', methods=['GET'])
@@ -48,10 +49,11 @@ print "Node id: %s" % blockchain.node_id
 
 @app.route('/chain', methods=['GET'])
 def full_chain():
-    json_output = json.dumps({
-        'chain': blockchain.chain,
-        'length': len(blockchain.chain)
-    }, default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
+    output = {
+        'length': len(blockchain.chain),
+        'chain': blockchain.json_output(),
+    }
+    json_output = json.dumps(output, indent=4)
     return json_output, 200
 
 
@@ -66,14 +68,15 @@ def new_transaction():
     index = blockchain.new_utxo_transaction(values['sender'], values['receiver'], values['amount'])
     if index >= 0:
         block = blockchain.do_mine()
-        json_output = json.dumps({
+        output = {
             'message': 'Success! Transaction was added to Block' + str(index),
             'index': block.index,
-            'transactions': block.transactions,
+            'transactions': [tx.json_output() for tx in block.transactions],
             'merkleroot': block.merkleroot,
             'nonce': block.nonce,
             'previous_hash': block.previous_hash
-        }, default=lambda obj: obj.__dict__, indent=4)
+        }
+        json_output = json.dumps(output, indent=4)
         return json_output, 200
 
     else:

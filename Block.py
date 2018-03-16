@@ -2,6 +2,7 @@
 
 import json
 
+
 class Block(object):
     def __init__(self, index, previous_hash, timestamp, nonce, current_hash, difficulty):
         """
@@ -28,6 +29,19 @@ class Block(object):
     def get_transactions(self):
         return self.transactions
 
+    def json_output(self):
+        output = {
+            'index': self.index,
+            'previous_hash': self.previous_hash,
+            'timestamp': self.timestamp,
+            'nonce': self.nonce,
+            'current_hash': self.current_hash,
+            'difficulty': self.difficulty,
+            'merkleroot': self.merkleroot,
+            'transactions': [tx.json_output() for tx in self.transactions]
+        }
+        return output
+
     def __str__(self):
-        return json.dumps(self, default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
+        return json.dumps(self.json_output(), default=lambda obj:obj.__dict__, sort_keys=True, indent=4)
 
