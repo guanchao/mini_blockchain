@@ -1,9 +1,10 @@
 # coding:utf-8
+from binascii import hexlify, Error
 from time import time
 
 import rsa
 
-import walet
+import wallet
 from Block import Block
 from MerkleTrees import MerkleTrees
 from transaction import *
@@ -20,16 +21,15 @@ class Blockchain(object):
         self.difficulty = 4
         self.chain = []
         self.current_transactions = []
-        # Generate a globally unique address for this node
-        # self.node_id = str(uuid4()).replace('-', '')
         # 创世区块
-        self.wallet = walet.Wallet()
+        self.wallet = wallet.Wallet()
         self.chain.append(self.get_genius_block())
 
     def get_genius_block(self):
-        # coinbase_tx = self.new_coinbase_tx(self.get_wallet_address())
         txin = TxInput(None, -1, None, None)
-        txoutput = TxOutput(10, self.get_wallet_address())
+        pubkey_hash = Script.sha160(str(self.wallet.pubkey))
+
+        txoutput = TxOutput(10, pubkey_hash)
         coinbase_tx = Transaction([txin], [txoutput], time())
         transactions = [coinbase_tx]
 
@@ -63,14 +63,15 @@ class Blockchain(object):
 
         return genius_block
 
-    def new_coinbase_tx(self, to_addr):
+    def new_coinbase_tx(self, address):
         """
         创世块，区块的第一笔交易，用于奖励矿工
-        :param to_addr: 接收地址
+        :param address: <str> 接收地址
         :return: <Transaction>对象
         """
         txin = TxInput(None, -1, None, None)
-        txoutput = TxOutput(10, to_addr)
+        pubkey_hash = hexlify(Wallet.b58decode(address)).decode('utf8')
+        txoutput = TxOutput(10, pubkey_hash)
         tx = Transaction([txin], [txoutput], time())
         return tx
 
@@ -96,7 +97,7 @@ class Blockchain(object):
         """
         被修剪后的带待签名副本，该副本包含交易中的所有输入和输出，
         但是TxInput.signature和TxInput.pubkey被设置未None
-        :param tx: 待修剪、拷贝的交易
+        :param tx: <Transaction>对象，待修剪、拷贝的交易
         :return:
         """
         inputs = list()
@@ -111,17 +112,25 @@ class Blockchain(object):
         return Transaction(inputs, outputs, tx.timestamp)
 
     def sign(self, tx, privkey, prev_txid_2_tx):
+        """
+        用私钥对交易tx签名
+        :param tx: <Transaction>对象，待签名对象
+        :param privkey: <PrivateKey>对象，私钥
+        :param prev_txid_2_tx: <dict>，txid与tx的映射
+        :return:
+        """
         if tx.is_coinbase():
             return
 
-        tx_copy = self.trimmed_copy_tx(tx)
+        tx_copy = self.trimmed_copy_tx(tx)  # 每个输入的signature和pubkey设置为None
         for in_idx in range(len(tx_copy.txins)):
             txin = tx_copy.txins[in_idx]
             prev_tx = prev_txid_2_tx[txin.prev_txid]
-            tx_copy.txins[in_idx].signature = None
-            tx_copy.txins[in_idx].pubkey = prev_tx.txouts[txin.prev_tx_out_idx].pubkey_hash
-            data = tx_copy.get_hash() # 待签名数据
-            tx_copy.txins[in_idx].pubkey = None
+
+            txin.signature = None
+            txin.pubkey = prev_tx.txouts[txin.prev_tx_out_idx].pubkey_hash
+            data = tx_copy.get_hash()  # 待签名数据
+            txin.pubkey = None
 
             signature = rsa.sign(data.encode(), privkey, 'SHA-256')
             tx.txins[in_idx].signature = signature
@@ -136,7 +145,7 @@ class Blockchain(object):
         """
         验证一笔交易
 
-        :param tx:
+        :param tx: <Transaction>对象
         :return:
         """
         prev_txid_2_tx = dict()
@@ -148,32 +157,35 @@ class Blockchain(object):
         """
         验证一笔交易
         rsa.verify(data.encode(), signature, pubkey)
-        :param tx:
-        :param prev_txid_2_tx:
+        :param tx: <Transaction>对象
+        :param prev_txid_2_tx: <dict>，txid与tx的映射
         :return:
         """
         if tx.is_coinbase():
-            # TODO fix
             return True
-        tx_copy = self.trimmed_copy_tx(tx)
+        tx_copy = self.trimmed_copy_tx(tx)  # 每个输入的signature和pubkey设置未None
         for in_idx in range(len(tx_copy.txins)):
+            # 校验每一个输入的有效性(即检查解锁脚本是否有效)
             txin = tx_copy.txins[in_idx]
             prev_tx = prev_txid_2_tx[txin.prev_txid]
-            tx_copy.txins[in_idx].signature = None
-            tx_copy.txins[in_idx].pubkey = prev_tx.txouts[txin.prev_tx_out_idx].pubkey_hash
+            txin.signature = None
+            txin.pubkey = prev_tx.txouts[txin.prev_tx_out_idx].pubkey_hash
             data = tx_copy.get_hash()  # 待签名数据
+
             txin.pubkey = None
 
-            if not rsa.verify(data.encode(), tx.txins[in_idx].signature, tx.txins[in_idx].pubkey):
+            scriptSig = [tx.txins[in_idx].signature, tx.txins[in_idx].pubkey]  # 解锁脚本
+            scriptPubKey = prev_tx.txouts[txin.prev_tx_out_idx].get_scriptPubKey()  # 锁定脚本
+
+            if not Script.check_tx_script(data, scriptSig, scriptPubKey):
                 return False
 
         return True
 
-
     def find_transaction(self, txid):
         """
         通过交易id找到一笔Tx交易
-        :param txid:
+        :param txid: <str>交易id
         :return:
         """
         for i in range(len(self.chain)):
@@ -188,26 +200,27 @@ class Blockchain(object):
     def get_balance(self, address):
         """
         获取address地址的余额
-        :param address:
+        :param address: <str> 钱包地址
         :return:
         """
         balance, _ = self.find_spendalbe_outputs(address)
         return balance
 
     def get_wallet_address(self):
-        return self.wallet.get_address()
+        return self.wallet.address
 
     def new_utxo_transaction(self, from_addr, to_addr, amount):
         """
         from_addr向to_addr发送amount量的货币，步骤：
-        Step1：首先获取from_addr下未使用过的TxOutput输出
+        Step1：首先获取from_addr下未使用过的TxOutput输出(未使用的UTXO)
         Step2：获取上一步TxOutput列表中value之和sum，并与amount相比
         Step3：如果sum<amount，则标识from_addr余额不够，无法交易；如果sum>=amount，则from_addr足够余额用于交易，多出的部分用于找零
         Step4：构造Transaction对象，并传入此次交易的输入和输出
-        Step5：TODO 广播
-        :param from_addr:
-        :param to_addr:
-        :param amount:
+        Step5：输入检查交易的有效性，输出设置锁定脚本
+        Step6：TODO 广播
+        :param from_addr: 发送方钱包地址
+        :param to_addr: 接收方钱包地址
+        :param amount: 金额
         :return:
         """
         inputs = list()
@@ -222,15 +235,15 @@ class Blockchain(object):
             inputs.append(txin)
 
         # 构造Tx的输出
-        txout = TxOutput(amount, to_addr)
+        txout = TxOutput(amount, hexlify(Wallet.b58decode(to_addr)).decode('utf8'))
         outputs.append(txout)
         if balance > amount:
             # 找零
             # TODO 交易费
-            outputs.append(TxOutput(balance-amount, self.get_wallet_address()))
+            outputs.append(TxOutput(balance - amount, Script.sha160(str(self.wallet.pubkey))))
 
         tx = Transaction(inputs, outputs, time())
-        self.sign_transaction(tx, self.wallet.privkey) # 签名Tx
+        self.sign_transaction(tx, self.wallet.privkey)  # 签名Tx
 
         self.current_transactions.append(tx)
         return self.chain[-1].index + 1
@@ -238,7 +251,7 @@ class Blockchain(object):
     def find_spendalbe_outputs(self, from_addr):
         """
         获取from_addr可以用于交易的TxOutput（未使用过的），
-        :param from_addr:
+        :param from_addr: <str>发送方钱包地址
         :return:
         """
         unspent_txout_list = list()
@@ -254,7 +267,6 @@ class Blockchain(object):
             for tx in transactions:
                 txid = tx.txid  # 当前交易的id
 
-
                 # 2.遍历某个交易下所有的TxInput
                 if not tx.is_coinbase():
                     print 'txid:', txid
@@ -265,7 +277,7 @@ class Blockchain(object):
                             spent_tx_out_idx = txin.prev_tx_out_idx
                             spent_txout_list.append(spent_txid)
                 else:
-                    print 'txid:', txid ,' is coinbase'
+                    print 'txid:', txid, ' is coinbase'
 
                 # 3.遍历某个交易下所有的未使用过的TxOutput
                 if not txid in spent_txout_list:
@@ -281,8 +293,12 @@ class Blockchain(object):
 
         return balance, unspent_txout_list
 
-
     def do_mine(self):
+        """
+        进行挖矿，验证当前节点收集的交易，并将有效交易打包成区块
+
+        :return:
+        """
         nonce = 0
         timestamp = time()
         print('Minning a block...')
@@ -315,6 +331,7 @@ class Blockchain(object):
                     tx = self.current_transactions[idx]
                     if not self.verify_transaction(tx):
                         print "Invalid transaction", str(tx)
+                        raise Error("Invalid transaction. Txid:" + tx.txid)
                     else:
                         valid_transactions.append(tx)
 
@@ -383,10 +400,8 @@ class Blockchain(object):
 
     def json_output(self):
         output = {
-            'wallet_address': self.wallet.get_address(),
+            'wallet_address': self.wallet.address,
             'difficulty': self.difficulty,
             'chain': [block.json_output() for block in self.chain],
         }
         return output
-
-

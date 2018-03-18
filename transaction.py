@@ -2,9 +2,11 @@
 
 import hashlib
 import json
+from binascii import hexlify
 
 import util
-from walet import get_address
+from script import OP_DUP, OP_HASH160, Script, OP_EQUALVERIFY, OP_CHECKSIG
+from wallet import Wallet
 
 
 class Transaction(object):
@@ -50,46 +52,6 @@ class Transaction(object):
         return json.dumps(self.json_output(), default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
 
 
-class TxOutput(object):
-    """
-    货币存储在TxOutput中，一个用户钱包的余额相当于某个地址下未使用过的TxOutput中value之和
-    """
-
-    def __init__(self, value, pubkey_hash):
-        """
-
-        :param value: 一定量的比特币
-        :param pubkey_hash: 锁定脚本，要花这笔钱，必须要解锁该脚本（相当于问题，回答该问题就可以花这笔钱）。
-                            目前将会存储一个任意的字符串，用做用户定义的钱包地址
-        """
-        self.value = value
-        self.pubkey_hash = pubkey_hash
-
-    def can_be_unlocked_with(self, unlocking_data):
-        return self.pubkey_hash == unlocking_data
-
-    def lock(self, address):
-        """
-        这里简化一下，钱包的地址就是公钥的哈希
-        :param address:
-        :return:
-        """
-        self.pubkey_hash = address
-
-    def is_locked_with_key(self, pubkey_hash):
-        return self.pubkey_hash == pubkey_hash
-
-    def __str__(self):
-        return json.dumps(self.json_output(), default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
-
-    def json_output(self):
-        output = {
-            'value': self.value,
-            'pubkey_hash': self.pubkey_hash
-        }
-        return output
-
-
 class TxInput(object):
     """
     一个输入引用之前的一个输出
@@ -108,22 +70,76 @@ class TxInput(object):
         self.signature = signature
         self.pubkey = pubkey
 
-    def can_unlock_txoutput_with(self, unlocking_data):
-        return get_address(self.pubkey) == unlocking_data
-
-    #
-    # def usekey(self, pubkey_hash):
-    #     locking_hash = get_address(self.pubkey)
-    #     return locking_hash == pubkey_hash
-
+    def can_unlock_txoutput_with(self, address):
+        """
+        检测当前输入的
+        :param address:
+        :return:
+        """
+        return Wallet.get_address(self.pubkey) == address
 
     def json_output(self):
         output = {
             'prev_txid': self.prev_txid,
             'prev_tx_out_idx': self.prev_tx_out_idx,
             'signature': util.get_hash(self.signature) if self.signature != None else "",
+            'pubkey_hash': Script.sha160(str(self.pubkey)) if self.pubkey != None else ""
         }
         return output
 
     def __str__(self):
         return json.dumps(self.json_output(), default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
+
+
+class TxOutput(object):
+    """
+    货币存储在TxOutput中，一个用户钱包的余额相当于某个地址下未使用过的TxOutput中value之和
+    """
+
+    def __init__(self, value, pubkey_hash):
+        """
+
+        :param value: 一定量的比特币
+        :param pubkey_hash: <str>，锁定脚本，要使用这个输出，必须要解锁该脚本。pubkey_hash=sha256(ripemd160(pubkey))
+        """
+        self.value = value
+        self.pubkey_hash = pubkey_hash
+        self.scriptPubKey = None
+
+        self.lock(pubkey_hash)
+
+    def get_scriptPubKey(self):
+        return self.scriptPubKey
+
+    def can_be_unlocked_with(self, address):
+        """
+        判断当前输出，address钱包地址是否可用
+        :param address: <str>钱包地址
+        :return:
+        """
+        return self.pubkey_hash == hexlify(Wallet.b58decode(address)).decode('utf8')
+
+    def lock(self, pubkey_hash):
+        """
+        锁定输出只有pubkey本人才能使用
+        :param pubkey_hash: <str>，锁定脚本，要使用这个输出，必须要解锁该脚本。pubkey_hash=sha256(ripemd160(pubkey))
+        :return:
+        """
+        self.scriptPubKey = [OP_DUP, OP_HASH160, pubkey_hash, OP_EQUALVERIFY, OP_CHECKSIG]
+
+    def __str__(self):
+        return json.dumps(self.json_output(), default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
+
+    def get_opcode_name(self, opcode):
+        if opcode == OP_DUP: return "OP_DUP"
+        if opcode == OP_HASH160: return "OP_HASH160"
+        if opcode == OP_EQUALVERIFY: return "OP_EQUALVERIFY"
+        if opcode == OP_CHECKSIG: return "OP_CHECKSIG"
+        return opcode
+
+    def json_output(self):
+        output = {
+            'value': self.value,
+            'scriptPubKey': [self.get_opcode_name(opcode) for opcode in self.scriptPubKey]
+        }
+        return output

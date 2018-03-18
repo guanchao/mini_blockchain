@@ -1,5 +1,6 @@
 # coding:utf-8
 import json
+from binascii import Error
 
 from flask import Flask, jsonify, request
 
@@ -67,7 +68,12 @@ def new_transaction():
     # Create a new Transaction
     index = blockchain.new_utxo_transaction(values['sender'], values['receiver'], values['amount'])
     if index >= 0:
-        block = blockchain.do_mine()
+        try:
+            block = blockchain.do_mine()
+        except Error, Argument:
+            response = {'message': Argument.message}
+            return jsonify(response), 200
+
         output = {
             'message': 'Success! Transaction was added to Block' + str(index),
             'index': block.index,
