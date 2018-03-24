@@ -18,6 +18,7 @@ class MerkleTrees(object):
         temp_transaction = []
 
         if len(transaction_list) != 1:
+            print transaction_list
 
             for index in range(0, len(transaction_list), 2):
                 left_leaf = transaction_list[index]
@@ -27,8 +28,10 @@ class MerkleTrees(object):
                 else:
                     right_leaf = transaction_list[index]
 
-                left_leaf = left_leaf.txid
-                right_leaf = right_leaf.txid
+                if isinstance(left_leaf, Transaction):
+                    left_leaf = left_leaf.txid
+                if isinstance(right_leaf, Transaction):
+                    right_leaf = right_leaf.txid
 
                 left_leaf_hash = hashlib.sha256(left_leaf).hexdigest()  # 左边叶子节点的哈希值
                 right_leaf_hash = hashlib.sha256(right_leaf).hexdigest()  # 右边叶子节点的哈希值
@@ -72,30 +75,36 @@ class MerkleTrees(object):
         for block in self.chain:
             print block
 
-
+#
 # if __name__ == "__main__":
 #     transactions = []
-#     input = TxInput(None, -1, "Reward to 123456")
+#     input = TxInput(None, -1, "Reward to 123456", None)
 #     output = TxOutput(10, "123456")
-#     print str(input)
-#     print str(output)
 #
-#     tx = Transaction([input], [output])
+#     tx = Transaction([input], [output], time())
 #     transactions.append(tx)
-#     print str(tx)
-#
-#     tree = MerkleTrees(transactions)
-#     transaction_tree = tree.get_transaction_tree()
-#     print 'Root of the tree:', tree.get_root_leaf()
-#     print(json.dumps(transaction_tree, indent=4))
 # #
+# #     tree = MerkleTrees(transactions)
+# #     transaction_tree = tree.get_transaction_tree()
+# #     print 'Root of the tree:', tree.get_root_leaf()
+# #     print(json.dumps(transaction_tree, indent=4))
+# # #
 #     print '----------------------------------------------'
-#     tx2 = Transaction([TxInput(None, -1, "Reward to 654321")], [TxOutput(20, "654321")])
+#     tx2 = Transaction([TxInput(None, -1, "Reward to 654321", None)], [TxOutput(20, "654321")], time())
 #     transactions.append(tx2)
-#     tree2 = MerkleTrees(transactions)
-#     tree2.create_tree()
-#     transaction_tree2 = tree2.get_transaction_tree()
-#     print 'Root of the tree:', tree2.get_root_leaf()
-#     print(json.dumps(transaction_tree2, indent=4))
+#     # tree2 = MerkleTrees(transactions)
+#     # tree2.create_tree()
+#     # transaction_tree2 = tree2.get_transaction_tree()
+#     # print 'Root of the tree:', tree2.get_root_leaf()
+#     # print(json.dumps(transaction_tree2, indent=4))
 #
-#     print str(tx)
+#     print '----------------------------------------------'
+#     tx3 = Transaction([TxInput(None, -1, "Reward to 123123", None)], [TxOutput(20, "654321")], time())
+#     transactions.append(tx3)
+#     tree3 = MerkleTrees(transactions)
+#     tree3.create_tree()
+#     transaction_tree3 = tree3.get_transaction_tree()
+#     print 'Root of the tree:', tree3.get_root_leaf()
+#     print(json.dumps(transaction_tree3, indent=4))
+# #
+# #     print str(tx)

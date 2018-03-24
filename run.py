@@ -119,18 +119,24 @@ def curr_node():
     return output, 200
 
 
-# @app.route('/mine', methods=['GET'])
-# def mine():
-#     block = blockchain.do_mine()
-#     json_output = json.dumps({
-#         'message': 'New Block Forged',
-#         'index': block.index,
-#         'transactions': block.transactions,
-#         'merkleroot': block.merkleroot,
-#         'nonce': block.nonce,
-#         'previous_hash': block.previous_hash
-#     }, default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
-#     return json_output, 200
+@app.route('/mine', methods=['GET'])
+def mine():
+    try:
+        block = blockchain.do_mine()
+    except Error, Argument:
+        response = {'message': Argument.message}
+        return jsonify(response), 200
+
+    output = {
+        'message': 'Contrigulations, Find new block!',
+        'index': block.index,
+        'transactions': [tx.json_output() for tx in block.transactions],
+        'merkleroot': block.merkleroot,
+        'nonce': block.nonce,
+        'previous_hash': block.previous_hash
+    }
+    json_output = json.dumps(output, indent=4)
+    return json_output, 200
 
 
 @app.route('/chain', methods=['GET'])
@@ -152,24 +158,32 @@ def new_transaction():
 
     # Create a new Transaction
     index = blockchain.new_utxo_transaction(values['sender'], values['receiver'], values['amount'])
-    if index >= 0:
-        try:
-            block = blockchain.do_mine()
-        except Error, Argument:
-            response = {'message': Argument.message}
-            return jsonify(response), 200
 
+
+    if index >= 0:
         output = {
-            'message': 'Success! Transaction was added to Block' + str(index),
-            'index': block.index,
-            'transactions': [tx.json_output() for tx in block.transactions],
-            'merkleroot': block.merkleroot,
-            'nonce': block.nonce,
-            'previous_hash': block.previous_hash
+            'message': 'new transaction been created successfully!',
+            'current_transactions': [tx.json_output() for tx in blockchain.current_transactions]
         }
         json_output = json.dumps(output, indent=4)
         return json_output, 200
-
+    #     try:
+    #         block = blockchain.do_mine()
+    #     except Error, Argument:
+    #         response = {'message': Argument.message}
+    #         return jsonify(response), 200
+    #
+    #     output = {
+    #         'message': 'Success! Transaction was added to Block' + str(index),
+    #         'index': block.index,
+    #         'transactions': [tx.json_output() for tx in block.transactions],
+    #         'merkleroot': block.merkleroot,
+    #         'nonce': block.nonce,
+    #         'previous_hash': block.previous_hash
+    #     }
+    #     json_output = json.dumps(output, indent=4)
+    #     return json_output, 200
+    #
     else:
         response = {'message': "Not enough funds!"}
         return jsonify(response), 200

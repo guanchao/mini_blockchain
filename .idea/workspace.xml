@@ -2,7 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9f58f708-bf73-4dcb-ba25-9b513755feef" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.gitignore" afterPath="$PROJECT_DIR$/.gitignore" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Blockchain.py" afterPath="$PROJECT_DIR$/Blockchain.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MerkleTrees.py" afterPath="$PROJECT_DIR$/MerkleTrees.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/blockchain.py" afterPath="$PROJECT_DIR$/blockchain.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run.py" afterPath="$PROJECT_DIR$/run.py" />
     </list>
     <ignored path="simple_blockchain.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -23,16 +28,6 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="525">
-      <file leaf-file-name="node5.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/p2p/test/node5.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="132">
-              <caret line="7" column="42" selection-start-line="7" selection-start-column="29" selection-end-line="7" selection-end-column="42" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="node1.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/p2p/test/node1.py">
           <provider selected="true" editor-type-id="text-editor">
@@ -85,13 +80,47 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Blockchain.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Blockchain.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Blockchain.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="317">
-              <caret line="31" column="89" selection-start-line="31" selection-start-column="89" selection-end-line="31" selection-end-column="89" />
+            <state relative-caret-position="1257">
+              <caret line="324" column="0" selection-start-line="324" selection-start-column="0" selection-end-line="324" selection-end-column="0" />
               <folding>
                 <element signature="e#15#50#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name=".gitignore" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/.gitignore">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="88">
+              <caret line="4" column="7" selection-start-line="4" selection-start-column="7" selection-end-line="4" selection-end-column="7" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="MerkleTrees.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/MerkleTrees.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="0">
+              <caret line="0" column="4" selection-start-line="0" selection-start-column="2" selection-end-line="0" selection-end-column="4" />
+              <folding>
+                <element signature="e#15#29#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="transaction.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/transaction.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1584">
+              <caret line="72" column="32" selection-start-line="72" selection-start-column="8" selection-end-line="72" selection-end-column="32" />
+              <folding>
+                <element signature="e#16#30#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -100,21 +129,11 @@
       <file leaf-file-name="run.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/run.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="158">
-              <caret line="168" column="9" selection-start-line="168" selection-start-column="9" selection-end-line="168" selection-end-column="9" />
+            <state relative-caret-position="553">
+              <caret line="164" column="61" selection-start-line="164" selection-start-column="60" selection-end-line="164" selection-end-column="61" />
               <folding>
                 <element signature="e#15#26#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="kbucketset.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/p2p/kbucketset.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-125">
-              <caret line="35" column="34" selection-start-line="35" selection-start-column="22" selection-end-line="35" selection-end-column="34" />
-              <folding />
             </state>
           </provider>
         </entry>
@@ -166,8 +185,6 @@
         <option value="$PROJECT_DIR$/peer/test/server.py" />
         <option value="$PROJECT_DIR$/p2p/nearestnodes.py" />
         <option value="$PROJECT_DIR$/test.py" />
-        <option value="$PROJECT_DIR$/.gitignore" />
-        <option value="$PROJECT_DIR$/MerkleTrees.py" />
         <option value="$PROJECT_DIR$/Block.py" />
         <option value="$USER_HOME$/AppData/Local/Temp/scp21157/home/wwwroot/blog/sitemap.xml" />
         <option value="$PROJECT_DIR$/util.py" />
@@ -183,16 +200,18 @@
         <option value="$PROJECT_DIR$/p2p/test/node3.py" />
         <option value="$PROJECT_DIR$/p2p/test/node4.py" />
         <option value="$PROJECT_DIR$/p2p/node.py" />
+        <option value="$PROJECT_DIR$/MerkleTrees.py" />
         <option value="$PROJECT_DIR$/run.py" />
         <option value="$PROJECT_DIR$/Blockchain.py" />
+        <option value="$PROJECT_DIR$/.gitignore" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
     <option name="x" value="332" />
-    <option name="y" value="-1089" />
-    <option name="width" value="1938" />
-    <option name="height" value="1060" />
+    <option name="y" value="-1929" />
+    <option name="width" value="1098" />
+    <option name="height" value="1900" />
   </component>
   <component name="ProjectInspectionProfilesVisibleTreeState">
     <entry key="Project Default">
@@ -312,7 +331,7 @@
       <recent name="C:\Users\guanchao\Desktop\simple_blockchain\p2p" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.node3">
+  <component name="RunManager" selected="Python.MerkleTrees">
     <configuration default="false" name="node1" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -347,23 +366,6 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="run" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="simple_blockchain" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/run.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
     <configuration default="false" name="node2" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -394,6 +396,23 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="simple_blockchain" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/p2p/test/node3.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="MerkleTrees" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="simple_blockchain" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/MerkleTrees.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -535,17 +554,17 @@
     <list size="5">
       <item index="0" class="java.lang.String" itemvalue="Python.node1" />
       <item index="1" class="java.lang.String" itemvalue="Python.node4" />
-      <item index="2" class="java.lang.String" itemvalue="Python.run" />
-      <item index="3" class="java.lang.String" itemvalue="Python.node2" />
-      <item index="4" class="java.lang.String" itemvalue="Python.node3" />
+      <item index="2" class="java.lang.String" itemvalue="Python.node2" />
+      <item index="3" class="java.lang.String" itemvalue="Python.node3" />
+      <item index="4" class="java.lang.String" itemvalue="Python.MerkleTrees" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.node3" />
-        <item index="1" class="java.lang.String" itemvalue="Python.node2" />
-        <item index="2" class="java.lang.String" itemvalue="Python.node1" />
-        <item index="3" class="java.lang.String" itemvalue="Python.node4" />
-        <item index="4" class="java.lang.String" itemvalue="Python.run" />
+        <item index="0" class="java.lang.String" itemvalue="Python.MerkleTrees" />
+        <item index="1" class="java.lang.String" itemvalue="Python.node3" />
+        <item index="2" class="java.lang.String" itemvalue="Python.node2" />
+        <item index="3" class="java.lang.String" itemvalue="Python.node1" />
+        <item index="4" class="java.lang.String" itemvalue="Python.node4" />
       </list>
     </recent_temporary>
   </component>
@@ -566,15 +585,15 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="332" y="-1089" width="1938" height="1060" extended-state="6" />
+    <frame x="332" y="-1929" width="1098" height="1900" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.16079059" sideWeight="0.5" order="1" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.23934108" sideWeight="0.5" order="1" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32896176" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="WINDOWED" visible="false" show_stripe_button="true" weight="1.0" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" x="-9" y="-9" width="1847" height="1009" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="WINDOWED" visible="true" show_stripe_button="true" weight="0.54814816" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" x="-9" y="-9" width="1847" height="1009" />
       <window_info id="Structure" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.1953125" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32896176" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
@@ -693,13 +712,6 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/peer/storage.py" />
-    <entry file="file://$PROJECT_DIR$/.gitignore">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="1" column="19" selection-start-line="1" selection-start-column="19" selection-end-line="1" selection-end-column="19" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$USER_HOME$/AppData/Local/Temp/scp21157/home/wwwroot/blog/sitemap.xml">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -718,6 +730,7 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="704">
           <caret line="32" column="0" selection-start-line="32" selection-start-column="0" selection-end-line="32" selection-end-column="0" />
+          <folding />
         </state>
       </provider>
     </entry>
@@ -725,23 +738,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="528">
           <caret line="25" column="26" selection-start-line="25" selection-start-column="26" selection-end-line="25" selection-end-column="26" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/MerkleTrees.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="484">
-          <caret line="22" column="0" selection-start-line="22" selection-start-column="0" selection-end-line="23" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/transaction.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="190">
-          <caret line="119" column="47" selection-start-line="119" selection-start-column="47" selection-end-line="119" selection-end-column="47" />
-          <folding>
-            <element signature="e#16#30#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -855,10 +851,30 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/transaction.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1584">
+          <caret line="72" column="32" selection-start-line="72" selection-start-column="8" selection-end-line="72" selection-end-column="32" />
+          <folding>
+            <element signature="e#16#30#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MerkleTrees.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="4" selection-start-line="0" selection-start-column="2" selection-end-line="0" selection-end-column="4" />
+          <folding>
+            <element signature="e#15#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/run.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="158">
-          <caret line="168" column="9" selection-start-line="168" selection-start-column="9" selection-end-line="168" selection-end-column="9" />
+        <state relative-caret-position="553">
+          <caret line="164" column="61" selection-start-line="164" selection-start-column="60" selection-end-line="164" selection-end-column="61" />
           <folding>
             <element signature="e#15#26#0" expanded="true" />
           </folding>
@@ -867,11 +883,19 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Blockchain.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="317">
-          <caret line="31" column="89" selection-start-line="31" selection-start-column="89" selection-end-line="31" selection-end-column="89" />
+        <state relative-caret-position="1257">
+          <caret line="324" column="0" selection-start-line="324" selection-start-column="0" selection-end-line="324" selection-end-column="0" />
           <folding>
             <element signature="e#15#50#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/.gitignore">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="88">
+          <caret line="4" column="7" selection-start-line="4" selection-start-column="7" selection-end-line="4" selection-end-column="7" />
+          <folding />
         </state>
       </provider>
     </entry>

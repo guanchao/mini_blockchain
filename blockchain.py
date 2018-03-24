@@ -27,9 +27,10 @@ class Blockchain(object):
 
     def get_genius_block(self):
         txin = TxInput(None, -1, None, None)
-        # pubkey_hash = Script.sha160(str(self.wallet.pubkey))
+        pubkey_hash = Script.sha160(str(self.wallet.pubkey))
+        txoutput = TxOutput(100, pubkey_hash)
 
-        txoutput = TxOutput(100, "6e2f6215958aadb3212235647b0c2ee868f242a9")  # 创始区块，对应钱包地址：2Y2xK2P4hzexNeJTirhMNePwbKui
+        # txoutput = TxOutput(100, "6e2f6215958aadb3212235647b0c2ee868f242a9")  # 创始区块，对应钱包地址：2Y2xK2P4hzexNeJTirhMNePwbKui
         coinbase_tx = Transaction([txin], [txoutput], '1496518102.896031')
         transactions = [coinbase_tx]
 
@@ -139,6 +140,7 @@ class Blockchain(object):
         prev_txid_2_tx = dict()
         for txin in tx.txins:
             prev_txid_2_tx[txin.prev_txid] = self.find_transaction(txin.prev_txid)
+        print prev_txid_2_tx
         self.sign(tx, privkey, prev_txid_2_tx)
 
     def verify_transaction(self, tx):
@@ -188,6 +190,7 @@ class Blockchain(object):
         :param txid: <str>交易id
         :return:
         """
+        # 在区块中寻找（已确认的交易）
         for i in range(len(self.chain)):
             block = self.chain[len(self.chain) - 1 - i]
             # 1.获取区块下的所有的交易
@@ -195,6 +198,11 @@ class Blockchain(object):
             for tx in transactions:
                 if tx.txid == txid:
                     return tx
+
+        # 在交易池中寻找（未确认的交易）
+        for uncomfirmed_tx in self.current_transactions:
+            if uncomfirmed_tx.txid == txid:
+                return uncomfirmed_tx
         return None
 
     def get_balance(self, address):
@@ -258,13 +266,42 @@ class Blockchain(object):
         spent_txout_list = list()
         balance = 0
 
-        # Step1:获取from_addr下可以未使用过的TxOutput
+        # Step0：遍历交易池中已经发生过的交易（未打包进区块，未确认）
+        # 备注：要从最新的交易开始遍历!!!!!
+        for i in range(len(self.current_transactions)):
+            unconfirmed_tx = self.current_transactions[len(self.current_transactions) - 1 - i]
+            txid = unconfirmed_tx.txid
+
+            # 遍历当前交易下所有的TxInput
+            if not unconfirmed_tx.is_coinbase():
+                print 'txid:', txid
+                # 记录当前tx下被from_addr被使用过的上一次交易的输出，即记录txid和out_idx
+                for txin in unconfirmed_tx.txins:
+                    if txin.can_unlock_txoutput_with(from_addr):
+                        spent_txid = txin.prev_txid
+                        spent_tx_out_idx = txin.prev_tx_out_idx
+                        spent_txout_list.append((spent_txid, spent_tx_out_idx))
+            else:
+                print 'txid:', txid, ' is coinbase'
+
+            # 遍历交易下所有的未使用过的TxOutput
+            for out_idx in range(len(unconfirmed_tx.txouts)):
+                txout = unconfirmed_tx.txouts[out_idx]
+                if not (txid, out_idx) in spent_txout_list:
+                    if txout.can_be_unlocked_with(from_addr):
+                        unspent_txout_list.append((txid, out_idx, txout))
+
+        #--------------------------------------------------
+
+        # Step1:获取from_addr下可以未使用过的TxOutput（打包在区块，已确认）
         for i in range(len(self.chain)):
             print 'block index:', len(self.chain) - 1 - i
             block = self.chain[len(self.chain) - 1 - i]
             # 1.获取区块下的所有的交易
             transactions = block.get_transactions()
-            for tx in transactions:
+            # 备注：要从最新的交易开始遍历!!!!!
+            for k in range(len(transactions)):
+                tx = transactions[len(transactions) - 1 - k]
                 txid = tx.txid  # 当前交易的id
 
                 # 2.遍历某个交易下所有的TxInput
@@ -275,18 +312,16 @@ class Blockchain(object):
                         if txin.can_unlock_txoutput_with(from_addr):
                             spent_txid = txin.prev_txid
                             spent_tx_out_idx = txin.prev_tx_out_idx
-                            spent_txout_list.append(spent_txid)
+                            spent_txout_list.append((spent_txid, spent_tx_out_idx))
                 else:
                     print 'txid:', txid, ' is coinbase'
 
                 # 3.遍历某个交易下所有的未使用过的TxOutput
-                if not txid in spent_txout_list:
-                    for out_idx in range(len(tx.txouts)):
-                        txout = tx.txouts[out_idx]
-
+                for out_idx in range(len(tx.txouts)):
+                    txout = tx.txouts[out_idx]
+                    if not (txid, out_idx) in spent_txout_list:
                         if txout.can_be_unlocked_with(from_addr):
                             unspent_txout_list.append((txid, out_idx, txout))
-
         # Step2：计算这些未使用过的TxOutput货币之和
         for txid, out_idx, txout in unspent_txout_list:
             balance += txout.value
@@ -323,7 +358,7 @@ class Blockchain(object):
                 # 给工作量证明的节点提供奖励
                 # 发送者为"0" 表明新挖出的币
                 coinbase_tx = self.new_coinbase_tx(self.get_wallet_address())
-                self.current_transactions.append(coinbase_tx)
+                self.current_transactions.insert(0, coinbase_tx) # coinbase放在第一个
 
                 # 验证每一笔交易的有效性
                 valid_transactions = list()

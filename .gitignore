@@ -1,5 +1,5 @@
+*.pyc
 .idea/
 .idea/workspace.xml
 peer/
-*.pyc
 test.py
