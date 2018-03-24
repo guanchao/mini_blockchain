@@ -31,7 +31,7 @@ class Blockchain(object):
         txoutput = TxOutput(100, pubkey_hash)
 
         # txoutput = TxOutput(100, "6e2f6215958aadb3212235647b0c2ee868f242a9")  # 创始区块，对应钱包地址：2Y2xK2P4hzexNeJTirhMNePwbKui
-        coinbase_tx = Transaction([txin], [txoutput], '1496518102.896031')
+        coinbase_tx = Transaction([txin], [txoutput], 1496518102)
         transactions = [coinbase_tx]
 
         merkletrees = MerkleTrees(transactions)
@@ -40,21 +40,21 @@ class Blockchain(object):
 
         genish_block_hash = calculate_hash(index=0,
                                            previous_hash='0000000000000000000000000000000000000000000000000000000000000000',
-                                           timestamp='1496518102.896031',
+                                           timestamp=1496518102,
                                            merkleroot=merkleroot,
                                            nonce=nonce,
                                            difficulty=self.difficulty)
         while genish_block_hash[0:self.difficulty] != '0' * self.difficulty:
             genish_block_hash = calculate_hash(index=0,
                                                previous_hash='0000000000000000000000000000000000000000000000000000000000000000',
-                                               timestamp='1496518102.896031',
+                                               timestamp=1496518102,
                                                merkleroot=merkleroot,
                                                nonce=nonce,
                                                difficulty=self.difficulty)
             nonce += 1
         genius_block = Block(index=0,
                              previous_hash='0000000000000000000000000000000000000000000000000000000000000000',
-                             timestamp='1496518102.896031',
+                             timestamp='1496518102',
                              nonce=nonce,
                              current_hash=genish_block_hash,
                              difficulty=self.difficulty)
@@ -73,7 +73,7 @@ class Blockchain(object):
         txin = TxInput(None, -1, None, None)
         pubkey_hash = hexlify(Wallet.b58decode(address)).decode('utf8')
         txoutput = TxOutput(10, pubkey_hash)
-        tx = Transaction([txin], [txoutput], time())
+        tx = Transaction([txin], [txoutput], int(time()))
         return tx
 
     def generate_block(self, merkleroot, next_timestamp, next_nonce):
@@ -250,7 +250,7 @@ class Blockchain(object):
             # TODO 交易费
             outputs.append(TxOutput(balance - amount, Script.sha160(str(self.wallet.pubkey))))
 
-        tx = Transaction(inputs, outputs, time())
+        tx = Transaction(inputs, outputs, int(time()))
         self.sign_transaction(tx, self.wallet.privkey)  # 签名Tx
 
         self.current_transactions.append(tx)
@@ -334,8 +334,12 @@ class Blockchain(object):
 
         :return:
         """
+        if len(self.current_transactions) < 5:
+            # 至少要有5个以上的交易才可以开始进行挖矿
+            raise Error("Not enough transactions!")
+
         nonce = 0
-        timestamp = time()
+        timestamp = int(time())
         print('Minning a block...')
         new_block_found = False
         new_block_attempt = None
@@ -351,7 +355,7 @@ class Blockchain(object):
 
             if cal_hash[0:self.difficulty] == '0' * self.difficulty:
                 new_block_attempt = self.generate_block(merkleroot, timestamp, nonce)
-                end_timestamp = time()
+                end_timestamp = int(time())
                 cos_timestamp = end_timestamp - timestamp
                 print('New block found with nonce ' + str(nonce) + ' in ' + str(round(cos_timestamp, 2)) + ' seconds.')
 
