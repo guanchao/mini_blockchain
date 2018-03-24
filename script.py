@@ -4,6 +4,8 @@
 import hashlib
 import rsa
 
+from wallet import Wallet
+
 OP_DUP = 0x76  # 118, 复制栈顶元素
 OP_HASH160 = 0xa9  # 169,sha256(ripemd160(栈顶元素))
 OP_CHECKSIG = 0xac  # 172, Input：sig+pubkey  Output：True/False  校验签名
@@ -96,6 +98,7 @@ class Script(object):
         """
         sha = hashlib.sha256(data.encode('utf-8'))
         hash_256_value = sha.hexdigest()
+        print hash_256_value
         obj = hashlib.new('ripemd160', hash_256_value.encode('utf-8'))
         ripemd_160_value = obj.hexdigest()
         return ripemd_160_value
@@ -167,7 +170,23 @@ class Stack:
         # return json.dumps(self.items, default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
         for _v in [str(item) for item in self.items]:
             print _v
+print Script.sha160('hello')
 
+
+def get_address_from_ripemd160(ripemd_hash):
+    #  steps from https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses
+    h3 = ripemd_hash
+    h4 = '00' + h3
+    h5 = hashlib.sha256(h4.decode('hex')).hexdigest()
+    h6 = hashlib.sha256(h5.decode('hex')).hexdigest()
+    h7 = h6[0:8]
+    h8 = h4 + h7
+    h9 = Wallet.b58encode(h8.decode('hex'))
+
+    return h9
+
+
+# print get_address_from_ripemd160(Script.sha160('hello'))
 #
 # wallet = Wallet()
 # print wallet.address

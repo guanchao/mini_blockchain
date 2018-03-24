@@ -49,6 +49,8 @@ class RequestHandler(SocketServer.BaseRequestHandler):
         client_node_id = msg['from_id']
         new_node = Node(client_ip, client_port, client_node_id)
         self.server.node_manager.buckets.insert(new_node)
+
+        self.server.node_manager.alive_nodes[client_node_id] = int(time.time()) #更新节点联系时间
         print '[Info] All nodes:', self.server.node_manager.buckets.get_all_nodes()
 
     def handle_ping(self, message):
@@ -220,11 +222,18 @@ class NodeManager(object):
         self.client = Node(self.ip, self.port, self.node_id)
         self.data = {}
 
+        self.alive_nodes = {} # {"xxxx":"2018-03-12 22:00:00",....}
+
         self.server.node_manager = self
 
         self.server_thread = threading.Thread(target=self.server.serve_forever)
         self.server_thread.daemon = True
         self.server_thread.start()
+
+        self.hearbeat_thread = threading.Thread(target=self.hearbeat)
+        self.hearbeat_thread.daemon = True
+        self.hearbeat_thread.start()
+
         print '[Info] start new node', self.ip, self.port, self.node_id
 
     def ping(self, sock, server_node_id, target_node_address):
@@ -339,12 +348,31 @@ class NodeManager(object):
     def __random_id(self):
         return random.randint(0, (2 ** constant.BITS) - 1)
 
-    def refresh_buckets(self):
-        # TODO
+    def hearbeat(self):
         # buckets在15分钟内节点未改变过需要进行refresh操作（对buckets中的每个节点发起find node操作）
         # 如果所有节点都有返回响应，则该buckets不需要经常更新
         # 如果有节点没有返回响应，则该buckets需要定期更新保证buckets的完整性
-        pass
+        while True:
+            for bucket in self.buckets.buckets:
+                for i in range(len(bucket)):
+                    node = bucket[i]
+                    node_id = node.node_id
+                    ip = node.ip
+                    port = node.port
+
+                    tm = int(time.time())
+                    if tm - int(self.alive_nodes[node_id]) > 60:
+                        # 节点的更新时间超过1min，认为已下线，移除该节点
+                        bucket.pop(i)
+                        self.alive_nodes.pop(node_id)
+
+                    print '[Info] heartbeat....'
+                    self.ping(self.server.socket, node_id, (ip, port))
+            time.sleep(10)
+
+
+
+
 
     def set_data(self, key, value):
         """

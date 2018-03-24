@@ -5,6 +5,7 @@ from binascii import Error
 from flask import Flask, jsonify, request
 
 from Blockchain import Blockchain
+from p2p.node import NodeManager, Node
 
 try:
     from urllib.parse import urlparse
@@ -31,7 +32,91 @@ TODO:
 app = Flask(__name__)
 
 blockchain = Blockchain()
+node_manager = NodeManager('localhost')
 print "Wallet address: %s" % blockchain.get_wallet_address()
+
+
+@app.route('/ping', methods=['POST'])
+def ping():
+    values = request.get_json()
+    required = ['node_id', 'ip', 'port']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
+
+    node_id = values['node_id']
+    ip = values['ip']
+    port = values['port']
+
+    node_manager.ping(node_manager.server.socket, long(node_id), (str(ip), int(port)))
+    return 'ok', 200
+
+
+@app.route('/all_nodes', methods=['GET'])
+def get_all_nodes():
+    all_nodes = node_manager.buckets.get_all_nodes()
+    output = json.dumps(all_nodes, default=lambda obj: obj.__dict__, indent=4)
+    return output, 200
+
+
+@app.route('/all_data', methods=['GET'])
+def get_all_data():
+    datas = node_manager.data
+    output = json.dumps(datas, default=lambda obj: obj.__dict__, indent=4)
+    return output, 200
+
+
+@app.route('/set_data', methods=['POST'])
+def set_data():
+    values = request.get_json()
+    required = ['key', 'value']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
+    key = values['key']
+    value = values['value']
+    node_manager.set_data(key, value)
+
+    datas = node_manager.data
+    output = json.dumps(datas, default=lambda obj: obj.__dict__, indent=4)
+    return output, 200
+
+
+@app.route('/get_data', methods=['GET'])
+def get_data():
+    key = request.args.get('key')
+    try:
+        value = node_manager.get_data(key)
+        return value, 200
+    except KeyError as e:
+        return 'not found!', 200
+
+
+@app.route('/bootstrap', methods=['POST'])
+def bootstrap():
+    values = request.get_json()
+    required = ['seeds']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
+    seeds = values['seeds']
+    print json.dumps(seeds, default=lambda obj: obj.__dict__, indent=4)
+    seed_nodes = list()
+    for seed in seeds:
+        seed_nodes.append(Node(seed['ip'], seed['port'], seed['node_id']))
+    node_manager.bootstrap(seed_nodes)
+
+    all_nodes = node_manager.buckets.get_all_nodes()
+    output = json.dumps(all_nodes, default=lambda obj: obj.__dict__, indent=4)
+    return output, 200
+
+
+@app.route('/curr_node', methods=['GET'])
+def curr_node():
+    output = {
+        'node_id': node_manager.node_id,
+        'ip': node_manager.ip,
+        'port': node_manager.port
+    }
+    output = json.dumps(output, default=lambda obj: obj.__dict__, indent=4)
+    return output, 200
 
 
 # @app.route('/mine', methods=['GET'])
