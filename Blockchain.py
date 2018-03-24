@@ -27,10 +27,10 @@ class Blockchain(object):
 
     def get_genius_block(self):
         txin = TxInput(None, -1, None, None)
-        pubkey_hash = Script.sha160(str(self.wallet.pubkey))
+        # pubkey_hash = Script.sha160(str(self.wallet.pubkey))
 
-        txoutput = TxOutput(10, pubkey_hash)
-        coinbase_tx = Transaction([txin], [txoutput], time())
+        txoutput = TxOutput(100, "6e2f6215958aadb3212235647b0c2ee868f242a9")  # 创始区块，对应钱包地址：2Y2xK2P4hzexNeJTirhMNePwbKui
+        coinbase_tx = Transaction([txin], [txoutput], '1496518102.896031')
         transactions = [coinbase_tx]
 
         merkletrees = MerkleTrees(transactions)
