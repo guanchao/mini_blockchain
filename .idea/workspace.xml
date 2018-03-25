@@ -2,12 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9f58f708-bf73-4dcb-ba25-9b513755feef" name="Default" comment="">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Blockchain.py" afterPath="$PROJECT_DIR$/Blockchain.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/blockchain.py" afterPath="$PROJECT_DIR$/blockchain.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/p2p/nearestnodes.py" afterPath="$PROJECT_DIR$/p2p/nearestnodes.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/p2p/node.py" afterPath="$PROJECT_DIR$/p2p/node.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/p2p/packet.py" afterPath="$PROJECT_DIR$/p2p/packet.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/p2p/test/node3.py" afterPath="$PROJECT_DIR$/p2p/test/node3.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/p2p/test/node4.py" afterPath="$PROJECT_DIR$/p2p/test/node4.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/p2p/test/node5.py" afterPath="$PROJECT_DIR$/p2p/test/node5.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run.py" afterPath="$PROJECT_DIR$/run.py" />
     </list>
     <ignored path="simple_blockchain.iws" />
@@ -39,16 +38,6 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="node4.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/p2p/test/node4.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="110">
-              <caret line="7" column="67" selection-start-line="7" selection-start-column="28" selection-end-line="7" selection-end-column="67" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="node3.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/p2p/test/node3.py">
           <provider selected="true" editor-type-id="text-editor">
@@ -61,21 +50,11 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="packet.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/p2p/packet.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="242">
-              <caret line="11" column="30" selection-start-line="11" selection-start-column="30" selection-end-line="11" selection-end-column="30" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
       <file leaf-file-name="node.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/p2p/node.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-327">
-              <caret line="326" column="19" selection-start-line="326" selection-start-column="12" selection-end-line="326" selection-end-column="19" />
+            <state relative-caret-position="715">
+              <caret line="436" column="52" selection-start-line="436" selection-start-column="52" selection-end-line="436" selection-end-column="52" />
               <folding>
                 <element signature="e#15#29#0" expanded="true" />
               </folding>
@@ -83,29 +62,49 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="run.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/run.py">
+      <file leaf-file-name="Block.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Block.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1012">
-              <caret line="172" column="70" selection-start-line="172" selection-start-column="70" selection-end-line="172" selection-end-column="70" />
+            <state relative-caret-position="484">
+              <caret line="22" column="36" selection-start-line="22" selection-start-column="36" selection-end-line="22" selection-end-column="36" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="Blockchain.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="run.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/run.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="273">
+              <caret line="39" column="17" selection-start-line="39" selection-start-column="13" selection-end-line="39" selection-end-column="17" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Blockchain.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Blockchain.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="176">
-              <caret line="32" column="60" selection-start-line="32" selection-start-column="60" selection-end-line="32" selection-end-column="60" />
+            <state relative-caret-position="531">
+              <caret line="383" column="23" selection-start-line="383" selection-start-column="23" selection-end-line="383" selection-end-column="23" />
               <folding>
-                <element signature="e#15#31#0" expanded="true" />
+                <element signature="e#15#50#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="node1.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="kbucketset.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/p2p/kbucketset.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1144">
+              <caret line="55" column="8" selection-start-line="55" selection-start-column="8" selection-end-line="55" selection-end-column="23" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="node1.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/p2p/test/node1.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="154">
@@ -169,7 +168,6 @@
         <option value="$PROJECT_DIR$/p2p/message.py" />
         <option value="$PROJECT_DIR$/peer/test/client.py" />
         <option value="$PROJECT_DIR$/peer/test/server.py" />
-        <option value="$PROJECT_DIR$/p2p/nearestnodes.py" />
         <option value="$PROJECT_DIR$/test.py" />
         <option value="$PROJECT_DIR$/Block.py" />
         <option value="$USER_HOME$/AppData/Local/Temp/scp21157/home/wwwroot/blog/sitemap.xml" />
@@ -182,20 +180,21 @@
         <option value="$PROJECT_DIR$/p2p/kbucketset.py" />
         <option value="$PROJECT_DIR$/p2p/test/node1.py" />
         <option value="$PROJECT_DIR$/p2p/test/node2.py" />
-        <option value="$PROJECT_DIR$/MerkleTrees.py" />
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/p2p/packet.py" />
         <option value="$PROJECT_DIR$/p2p/test/node4.py" />
         <option value="$PROJECT_DIR$/p2p/test/node5.py" />
         <option value="$PROJECT_DIR$/p2p/test/node3.py" />
+        <option value="$PROJECT_DIR$/p2p/nearestnodes.py" />
         <option value="$PROJECT_DIR$/run.py" />
         <option value="$PROJECT_DIR$/p2p/node.py" />
         <option value="$PROJECT_DIR$/Blockchain.py" />
+        <option value="$PROJECT_DIR$/MerkleTrees.py" />
       </list>
     </option>
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="332" />
+    <option name="x" value="246" />
     <option name="y" value="-1929" />
     <option name="width" value="1098" />
     <option name="height" value="1900" />
@@ -269,7 +268,7 @@
       <recent name="C:\Users\guanchao\Desktop\simple_blockchain\p2p" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.node3">
+  <component name="RunManager" selected="Python.MerkleTrees">
     <configuration default="false" name="node1" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -283,23 +282,6 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="simple_blockchain" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/p2p/test/node1.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
-    <configuration default="false" name="node2" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/p2p/test" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="simple_blockchain" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/p2p/test/node2.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -351,6 +333,23 @@
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="simple_blockchain" />
       <option name="SCRIPT_NAME" value="$PROJECT_DIR$/p2p/test/node4.py" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="MerkleTrees" type="PythonConfigurationType" factoryName="Python" temporary="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="simple_blockchain" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/MerkleTrees.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
@@ -491,18 +490,18 @@
     </configuration>
     <list size="5">
       <item index="0" class="java.lang.String" itemvalue="Python.node1" />
-      <item index="1" class="java.lang.String" itemvalue="Python.node2" />
-      <item index="2" class="java.lang.String" itemvalue="Python.node3" />
-      <item index="3" class="java.lang.String" itemvalue="Python.node5" />
-      <item index="4" class="java.lang.String" itemvalue="Python.node4" />
+      <item index="1" class="java.lang.String" itemvalue="Python.node3" />
+      <item index="2" class="java.lang.String" itemvalue="Python.node5" />
+      <item index="3" class="java.lang.String" itemvalue="Python.node4" />
+      <item index="4" class="java.lang.String" itemvalue="Python.MerkleTrees" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.node3" />
-        <item index="1" class="java.lang.String" itemvalue="Python.node1" />
-        <item index="2" class="java.lang.String" itemvalue="Python.node5" />
-        <item index="3" class="java.lang.String" itemvalue="Python.node4" />
-        <item index="4" class="java.lang.String" itemvalue="Python.node2" />
+        <item index="0" class="java.lang.String" itemvalue="Python.MerkleTrees" />
+        <item index="1" class="java.lang.String" itemvalue="Python.node3" />
+        <item index="2" class="java.lang.String" itemvalue="Python.node1" />
+        <item index="3" class="java.lang.String" itemvalue="Python.node5" />
+        <item index="4" class="java.lang.String" itemvalue="Python.node4" />
       </list>
     </recent_temporary>
   </component>
@@ -523,10 +522,10 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="332" y="-1929" width="1098" height="1900" extended-state="6" />
+    <frame x="246" y="-1929" width="1098" height="1900" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.23934108" sideWeight="0.5" order="1" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.2635659" sideWeight="0.5" order="1" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.32896176" sideWeight="0.5" order="7" side_tool="true" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
@@ -699,14 +698,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/p2p/nearestnodes.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="273">
-          <caret line="58" column="35" selection-start-line="58" selection-start-column="8" selection-end-line="58" selection-end-column="35" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://C:/ProgramData/Anaconda2/Lib/threading.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="294">
@@ -719,14 +710,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="88">
           <caret line="4" column="7" selection-start-line="4" selection-start-column="7" selection-end-line="4" selection-end-column="7" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Block.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="704">
-          <caret line="32" column="0" selection-start-line="32" selection-start-column="0" selection-end-line="32" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -747,14 +730,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/MerkleTrees.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1380">
-          <caret line="101" column="25" selection-start-line="101" selection-start-column="0" selection-end-line="102" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/p2p/test/node4.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="110">
@@ -767,14 +742,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="132">
           <caret line="7" column="25" selection-start-line="7" selection-start-column="0" selection-end-line="8" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/p2p/kbucketset.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="786">
-          <caret line="74" column="0" selection-start-line="74" selection-start-column="0" selection-end-line="74" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -797,10 +764,60 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/p2p/test/node1.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="154">
+          <caret line="9" column="8" selection-start-line="9" selection-start-column="8" selection-end-line="9" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/p2p/nearestnodes.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1438">
+          <caret line="99" column="0" selection-start-line="99" selection-start-column="0" selection-end-line="99" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/run.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="273">
+          <caret line="39" column="17" selection-start-line="39" selection-start-column="13" selection-end-line="39" selection-end-column="17" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/p2p/kbucketset.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1144">
+          <caret line="55" column="8" selection-start-line="55" selection-start-column="8" selection-end-line="55" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/p2p/node.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-327">
-          <caret line="326" column="19" selection-start-line="326" selection-start-column="12" selection-end-line="326" selection-end-column="19" />
+        <state relative-caret-position="715">
+          <caret line="436" column="52" selection-start-line="436" selection-start-column="52" selection-end-line="436" selection-end-column="52" />
+          <folding>
+            <element signature="e#15#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Block.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="484">
+          <caret line="22" column="36" selection-start-line="22" selection-start-column="36" selection-end-line="22" selection-end-column="36" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MerkleTrees.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="588">
+          <caret line="65" column="28" selection-start-line="65" selection-start-column="28" selection-end-line="65" selection-end-column="28" />
           <folding>
             <element signature="e#15#29#0" expanded="true" />
           </folding>
@@ -809,27 +826,11 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Blockchain.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="176">
-          <caret line="32" column="60" selection-start-line="32" selection-start-column="60" selection-end-line="32" selection-end-column="60" />
+        <state relative-caret-position="531">
+          <caret line="383" column="23" selection-start-line="383" selection-start-column="23" selection-end-line="383" selection-end-column="23" />
           <folding>
-            <element signature="e#15#31#0" expanded="true" />
+            <element signature="e#15#50#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/run.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1012">
-          <caret line="172" column="70" selection-start-line="172" selection-start-column="70" selection-end-line="172" selection-end-column="70" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/p2p/test/node1.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="154">
-          <caret line="9" column="8" selection-start-line="9" selection-start-column="8" selection-end-line="9" selection-end-column="8" />
-          <folding />
         </state>
       </provider>
     </entry>

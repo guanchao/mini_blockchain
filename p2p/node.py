@@ -7,6 +7,7 @@ import threading
 import random
 
 import time
+from binascii import Error
 
 from Blockchain import Blockchain
 from p2p import constant
@@ -33,7 +34,7 @@ class RequestHandler(SocketServer.BaseRequestHandler):
         payload = msg_obj.payload
 
         print 'Handle from ', self.client_address, command
-        print command, 'payload:', payload
+        # print command, 'payload:', payload
 
         if command == "ping":
             self.handle_ping(payload)
@@ -51,6 +52,8 @@ class RequestHandler(SocketServer.BaseRequestHandler):
             self.handle_store(payload)
         elif command == "sendtx":
             self.handle_sendtx(payload)
+        elif command == "sendblock":
+            self.handle_sendblock(payload)
 
         client_ip, client_port = self.client_address
         client_node_id = payload.from_id
@@ -58,10 +61,10 @@ class RequestHandler(SocketServer.BaseRequestHandler):
         self.server.node_manager.buckets.insert(new_node)
 
         self.server.node_manager.alive_nodes[client_node_id] = int(time.time()) #更新节点联系时间
-        print '[Info] All nodes:', self.server.node_manager.buckets.get_all_nodes()
+        # print '[Info] All nodes:', self.server.node_manager.buckets.get_all_nodes()
 
     def handle_ping(self, payload):
-        print '[Info] handle ping', payload
+        # print '[Info] handle ping', payload
         socket = self.request[1]
         client_ip, client_port = self.client_address
         client_node_id = payload.from_id
@@ -69,7 +72,8 @@ class RequestHandler(SocketServer.BaseRequestHandler):
         self.server.node_manager.pong(socket, client_node_id, (client_ip, client_port))
 
     def handle_pong(self, payload):
-        print '[Info] handle ping response', payload
+        # print '[Info] handle ping response', payload
+        pass
 
     def handle_find_neighbors(self, payload):
         print '[Info] handle find node', payload
@@ -131,13 +135,34 @@ class RequestHandler(SocketServer.BaseRequestHandler):
         print '[Info] ', self.server.node_manager.client, self.server.node_manager.data
 
     def handle_sendtx(self, payload):
-        print '[Info] handle store', payload.json_output()
-        current_transactions = self.server.node_manager.blockchain.current_transactions
-        new_tx = payload
-        for tx in current_transactions:
-            if tx.txid == new_tx.txid:
+        print '[Info] handle sendtx, find new tx:', payload.json_output()
+        with self.server.node_manager.lock:
+            blockchain = self.server.node_manager.blockchain
+            new_tx = payload
+            # 判断区块和交易池中是否存在
+            if blockchain.find_transaction(new_tx.txid):
+                print '[Info] txid:',new_tx.txid, 'is duplicated, ignore ti!'
                 return
-        self.server.node_manager.blockchain.current_transactions.append(new_tx)
+            blockchain.current_transactions.append(new_tx)
+
+    def handle_sendblock(self, payload):
+        # TODO 增加区块池机制（保存临时区块）
+        print '[Info] handle sendblock, find new block:', payload.json_output()
+        with self.server.node_manager.lock:
+            blockchain = self.server.node_manager.blockchain
+            latest_block = blockchain.chain[len(blockchain.chain) - 1]
+            new_block = payload
+
+            if latest_block.index >= new_block.index:
+                # 旧区块，丢弃
+                print "[Warn] new block index is smaller latest block index, ignore!"
+                return
+            if latest_block.current_hash != new_block.previous_hash:
+                # 新区块的上一个父block不是当前区块链的最新block
+                print "[Warn] new block's previous hash is not equal ", latest_block.current_hash, ",ignore!"
+                return
+
+            self.server.node_manager.blockchain.chain.append(new_block)
 
 
 class Server(SocketServer.ThreadingUDPServer):
@@ -198,6 +223,9 @@ class Node(object):
     def sendtx(self, sock, target_node_address, message):
         sock.sendto(message, target_node_address)
 
+    def sendblock(self, sock, target_node_address, message):
+        sock.sendto(message, target_node_address)
+
 
 class NodeManager(object):
     """
@@ -224,6 +252,8 @@ class NodeManager(object):
         # 这样可以避免节点收到多个从同一个节点发送的消息时无法区分
         self.rpc_ids = {}  # rpc_ids被多个线程共享，需要加锁
 
+        self.lock = threading.Lock() #备注，由于blockchain数据被多个线程共享使用（矿工线程、消息处理线程），需要加锁
+
         self.server = Server(self.address, RequestHandler)
         self.port = self.server.server_address[1]
         self.client = Node(self.ip, self.port, self.node_id)
@@ -238,9 +268,15 @@ class NodeManager(object):
         self.server_thread.daemon = True
         self.server_thread.start()
 
+        # 心跳机制
         self.hearbeat_thread = threading.Thread(target=self.hearbeat)
         self.hearbeat_thread.daemon = True
         self.hearbeat_thread.start()
+
+        # 矿工线程
+        self.minner_thread = threading.Thread(target=self.minner)
+        self.minner_thread.daemon = True
+        self.minner_thread.start()
 
         print '[Info] start new node', self.ip, self.port, self.node_id
 
@@ -248,7 +284,7 @@ class NodeManager(object):
         payload = packet.Ping(self.node_id, server_node_id)
         msg_obj = packet.Message("ping", payload)
         msg_bytes = pickle.dumps(msg_obj)
-        print '[Info] send ping'
+        # print '[Info] send ping'
         self.client.ping(sock, target_node_address, msg_bytes)
 
     def pong(self, sock, server_node_id, target_node_address):
@@ -261,7 +297,7 @@ class NodeManager(object):
         payload = packet.Pong(self.node_id, server_node_id)
         msg_obj = packet.Message("pong", payload)
         msg_bytes = pickle.dumps(msg_obj)
-        print '[Info] send pong'
+        # print '[Info] send pong'
         self.client.pong(sock, target_node_address, msg_bytes)
 
     def find_neighbors(self, node_id, rpc_id, sock, server_node_id, server_node_address):
@@ -392,6 +428,21 @@ class NodeManager(object):
             time.sleep(10)
 
 
+    def minner(self):
+        while True:
+            # blockchain多个线程共享使用，需要加锁
+            time.sleep(10)
+            try:
+                print '[Info] try to mine...'
+                new_block = self.blockchain.do_mine()
+                # 广播区块
+                self.sendblock(new_block)
+            except Error as e:
+                print '[Warn] minner ', e
+                pass
+
+
+
     def set_data(self, key, value):
         """
         数据存放:
@@ -438,17 +489,38 @@ class NodeManager(object):
         :param tx:
         :return:
         """
-        data_key = self.__hash_function(tx.txid)
-        k_nearest_ndoes = self.iterative_find_nodes(data_key)
-        print '[info] set data, k nearest nodes:', k_nearest_ndoes
-        if not k_nearest_ndoes:
-            self.data[data_key] = tx
-        for node in k_nearest_ndoes:
-            tx.from_id = self.node_id
-            msg_obj = packet.Message("sendtx", tx)
-            msg_bytes = pickle.dumps(msg_obj)
-            print '[Info] send tx', tx.json_output()
-            self.client.sendtx(self.server.socket, (node.ip, node.port), msg_bytes)
+        with self.lock:
+            data_key = self.__hash_function(tx.txid)
+            k_nearest_ndoes = self.iterative_find_nodes(data_key)
+            print '[info] set data, k nearest nodes:', k_nearest_ndoes
+            if not k_nearest_ndoes:
+                self.data[data_key] = tx
+            for node in k_nearest_ndoes:
+                tx.from_id = self.node_id
+                msg_obj = packet.Message("sendtx", tx)
+                msg_bytes = pickle.dumps(msg_obj)
+                print '[Info] send tx', tx.json_output()
+                self.client.sendtx(self.server.socket, (node.ip, node.port), msg_bytes)
+
+    def sendblock(self, block):
+        """
+        广播一个block
+        :param block:
+        :return:
+        """
+        with self.lock:
+            data_key = self.__hash_function(block.current_hash)
+            k_nearest_ndoes = self.iterative_find_nodes(data_key)
+            print '[info] set data, k nearest nodes:', k_nearest_ndoes
+            if not k_nearest_ndoes:
+                self.data[data_key] = block
+            for node in k_nearest_ndoes:
+                block.from_id = self.node_id
+                msg_obj = packet.Message("sendblock", block)
+                msg_bytes = pickle.dumps(msg_obj)
+                print '[Info] send block', block.json_output()
+                self.client.sendblock(self.server.socket, (node.ip, node.port), msg_bytes)
+
 
 
 

@@ -92,7 +92,7 @@ class RPCNearestNodes(object):
                 return True
 
             if len(self.list) == 0:
-                return False
+                return True
 
             for node, flag in self.list:
                 if not flag:

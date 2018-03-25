@@ -126,25 +126,25 @@ def curr_node():
     output = json.dumps(output, default=lambda obj: obj.__dict__, indent=4)
     return output, 200
 
-
-@app.route('/mine', methods=['GET'])
-def mine():
-    try:
-        block = blockchain.do_mine()
-    except Error, Argument:
-        response = {'message': Argument.message}
-        return jsonify(response), 200
-
-    output = {
-        'message': 'Contrigulations, Find new block!',
-        'index': block.index,
-        'transactions': [tx.json_output() for tx in block.transactions],
-        'merkleroot': block.merkleroot,
-        'nonce': block.nonce,
-        'previous_hash': block.previous_hash
-    }
-    json_output = json.dumps(output, indent=4)
-    return json_output, 200
+#
+# @app.route('/mine', methods=['GET'])
+# def mine():
+#     try:
+#         block = blockchain.do_mine()
+#     except Error, Argument:
+#         response = {'message': Argument.message}
+#         return jsonify(response), 200
+#
+#     output = {
+#         'message': 'Contrigulations, Find new block!',
+#         'index': block.index,
+#         'transactions': [tx.json_output() for tx in block.transactions],
+#         'merkleroot': block.merkleroot,
+#         'nonce': block.nonce,
+#         'previous_hash': block.previous_hash
+#     }
+#     json_output = json.dumps(output, indent=4)
+#     return json_output, 200
 
 
 @app.route('/chain', methods=['GET'])
