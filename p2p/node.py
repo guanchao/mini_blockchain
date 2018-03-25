@@ -162,7 +162,9 @@ class RequestHandler(SocketServer.BaseRequestHandler):
                 print "[Warn] new block's previous hash is not equal ", latest_block.current_hash, ",ignore!"
                 return
 
-            self.server.node_manager.blockchain.chain.append(new_block)
+            blockchain.chain.append(new_block)
+            blockchain.current_transactions = [] #放弃当前进行的挖矿任务，从新开始下一个挖矿任务
+
 
 
 class Server(SocketServer.ThreadingUDPServer):

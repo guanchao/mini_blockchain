@@ -28,9 +28,9 @@ class Blockchain(object):
     def get_genius_block(self):
         txin = TxInput(None, -1, None, None)
         pubkey_hash = Script.sha160(str(self.wallet.pubkey))
-        txoutput = TxOutput(100, pubkey_hash)
+        # txoutput = TxOutput(100, pubkey_hash)
 
-        # txoutput = TxOutput(100, "6e2f6215958aadb3212235647b0c2ee868f242a9")  # 创始区块，对应钱包地址：2Y2xK2P4hzexNeJTirhMNePwbKui
+        txoutput = TxOutput(100, "9e6502dd735fe8e7c5915e3e7e98bab46910daba")  # 创始区块，对应钱包地址：3qMi5hkuuCyqqdmy27Qm1UhEqEne
         coinbase_tx = Transaction([txin], [txoutput], 1496518102)
         transactions = [coinbase_tx]
 
