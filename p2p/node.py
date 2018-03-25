@@ -2,11 +2,13 @@
 import hashlib
 import json
 import SocketServer
+import pickle
 import threading
 import random
 
 import time
 
+from Blockchain import Blockchain
 from p2p import constant
 from p2p.kbucketset import KBucketSet
 from p2p.nearestnodes import RPCNearestNodes
@@ -26,53 +28,58 @@ class RequestHandler(SocketServer.BaseRequestHandler):
         备注：self.client_address是BaseRequestHandler的成员变量，记录连接到服务端的client地址
         :return:
         """
-        msg = json.loads(self.request[0].decode('utf-8').strip())
-        print 'Handle from ', self.client_address, msg
-        message_type = msg["msg_type"]
+        msg_obj = pickle.loads(self.request[0])
+        command = msg_obj.command
+        payload = msg_obj.payload
 
-        if message_type == packet.MSG_TYPE_PING:
-            self.handle_ping(msg)
-        elif message_type == packet.MSG_TYPE_PONG:
-            self.handle_pong(msg)
-        elif message_type == packet.MSG_TYPE_FIND_NEIGHBORS:
-            self.handle_find_neighbors(msg)
-        elif message_type == packet.MSG_TYPE_FOUND_NEIGHBORS:
-            self.handle_found_neighbors(msg)
-        elif message_type == packet.MSG_TYPE_FIND_VALUE:
-            self.handle_find_value(msg)
-        elif message_type == packet.MSG_TYPE_FOUND_VALUE:
-            self.handle_found_value(msg)
-        elif message_type == packet.MSG_TYPE_STORE:
-            self.handle_store(msg)
+        print 'Handle from ', self.client_address, command
+        print command, 'payload:', payload
+
+        if command == "ping":
+            self.handle_ping(payload)
+        elif command == "pong":
+            self.handle_pong(payload)
+        elif command == "find_neighbors":
+            self.handle_find_neighbors(payload)
+        elif command == "found_neighbors":
+            self.handle_found_neighbors(payload)
+        elif command == "find_value":
+            self.handle_find_value(payload)
+        elif command == "found_value":
+            self.handle_found_value(payload)
+        elif command == "store":
+            self.handle_store(payload)
+        elif command == "sendtx":
+            self.handle_sendtx(payload)
 
         client_ip, client_port = self.client_address
-        client_node_id = msg['from_id']
+        client_node_id = payload.from_id
         new_node = Node(client_ip, client_port, client_node_id)
         self.server.node_manager.buckets.insert(new_node)
 
         self.server.node_manager.alive_nodes[client_node_id] = int(time.time()) #更新节点联系时间
         print '[Info] All nodes:', self.server.node_manager.buckets.get_all_nodes()
 
-    def handle_ping(self, message):
-        print '[Info] handle ping', message
+    def handle_ping(self, payload):
+        print '[Info] handle ping', payload
         socket = self.request[1]
         client_ip, client_port = self.client_address
-        client_node_id = message['from_id']
+        client_node_id = payload.from_id
 
         self.server.node_manager.pong(socket, client_node_id, (client_ip, client_port))
 
-    def handle_pong(self, message):
-        print '[Info] handle ping response', message
+    def handle_pong(self, payload):
+        print '[Info] handle ping response', payload
 
-    def handle_find_neighbors(self, message):
-        print '[Info] handle find node', message
+    def handle_find_neighbors(self, payload):
+        print '[Info] handle find node', payload
 
         socket = self.request[1]
         client_ip, client_port = self.client_address
-        client_node_id = message['from_id']
+        client_node_id = payload.from_id
 
-        node_id = message['target_id']
-        rpc_id = message['rpc_id']
+        node_id = payload.target_id
+        rpc_id = payload.rpc_id
         nearest_nodes = self.server.node_manager.buckets.nearest_nodes(node_id)
         if not nearest_nodes:
             nearest_nodes.append(self.server.node_manager.client)
@@ -80,23 +87,23 @@ class RequestHandler(SocketServer.BaseRequestHandler):
         self.server.node_manager.found_neighbors(node_id, rpc_id, nearest_nodes_triple, socket, client_node_id,
                                                  (client_ip, client_port))
 
-    def handle_found_neighbors(self, message):
+    def handle_found_neighbors(self, payload):
 
-        print '[Info] handle find neighbors', message
-        rpc_id = message['rpc_id']
+        print '[Info] handle find neighbors', payload
+        rpc_id = payload.rpc_id
         rpc_nearest_nodes = self.server.node_manager.rpc_ids[rpc_id]
         del self.server.node_manager.rpc_ids[rpc_id]
-        nearest_nodes = [Node(*node) for node in message['neighbors']]
+        nearest_nodes = [Node(*node) for node in payload.neighbors]
         rpc_nearest_nodes.update(nearest_nodes)
 
-    def handle_find_value(self, message):
-        print '[Info] handle find value', message
+    def handle_find_value(self, payload):
+        print '[Info] handle find value', payload
         socket = self.request[1]
         client_ip, client_port = self.client_address
-        client_node_id = message['from_id']
+        client_node_id = payload.from_id
 
-        key = message['key']
-        rpc_id = message['rpc_id']
+        key = payload.key
+        rpc_id = payload.rpc_id
         if str(key) in self.server.node_manager.data:
             value = self.server.node_manager.data[str(key)]
             self.server.node_manager.found_value(key, value, rpc_id, socket, client_node_id, (client_ip, client_port))
@@ -108,20 +115,29 @@ class RequestHandler(SocketServer.BaseRequestHandler):
             self.server.node_manager.found_neighbors(key, rpc_id, nearest_nodes_triple, socket, client_node_id,
                                                      (client_ip, client_port))
 
-    def handle_found_value(self, message):
-        print '[Info] handle found value', message
-        rpc_id = message['rpc_id']
-        value = message['value']
+    def handle_found_value(self, payload):
+        print '[Info] handle found value', payload
+        rpc_id = payload.rpc_id
+        value = payload.value
         rpc_nearest_nodes = self.server.node_manager.rpc_ids[rpc_id]
         del self.server.node_manager.rpc_ids[rpc_id]
         rpc_nearest_nodes.set_target_value(value)
 
-    def handle_store(self, message):
-        print '[Info] handle store', message
-        key = message['key']
-        value = message['value']
+    def handle_store(self, payload):
+        print '[Info] handle store', payload
+        key = payload.key
+        value = payload.value
         self.server.node_manager.data[str(key)] = value
         print '[Info] ', self.server.node_manager.client, self.server.node_manager.data
+
+    def handle_sendtx(self, payload):
+        print '[Info] handle store', payload.json_output()
+        current_transactions = self.server.node_manager.blockchain.current_transactions
+        new_tx = payload
+        for tx in current_transactions:
+            if tx.txid == new_tx.txid:
+                return
+        self.server.node_manager.blockchain.current_transactions.append(new_tx)
 
 
 class Server(SocketServer.ThreadingUDPServer):
@@ -158,38 +174,29 @@ class Node(object):
     def triple(self):
         return (self.ip, self.port, self.node_id)
 
-    def __send_message(self, sock, target_node_address, message):
-        """
-
-        :param sock: <Socket obj> 跟服务端的socket连接
-        :param target_node_address: <tuple> 发送给目标节点的地址(ip,port)
-        :param message: <Message obj> 消息对象
-        :return:
-        """
-
-        message_json_output = json.dumps(message.__dict__)
-        sock.sendto(message_json_output, target_node_address)
-
     def ping(self, sock, target_node_address, message):
-        self.__send_message(sock, target_node_address, message)
+        sock.sendto(message, target_node_address)
 
     def pong(self, sock, target_node_address, message):
-        self.__send_message(sock, target_node_address, message)
+        sock.sendto(message, target_node_address)
 
     def find_neighbors(self, sock, target_node_address, message):
-        self.__send_message(sock, target_node_address, message)
+        sock.sendto(message, target_node_address)
 
     def found_neighbors(self, sock, target_node_address, message):
-        self.__send_message(sock, target_node_address, message)
+        sock.sendto(message, target_node_address)
 
     def find_value(self, sock, target_node_address, message):
-        self.__send_message(sock, target_node_address, message)
+        sock.sendto(message, target_node_address)
 
     def found_value(self, sock, target_node_address, message):
-        self.__send_message(sock, target_node_address, message)
+        sock.sendto(message, target_node_address)
 
     def store(self, sock, target_node_address, message):
-        self.__send_message(sock, target_node_address, message)
+        sock.sendto(message, target_node_address)
+
+    def sendtx(self, sock, target_node_address, message):
+        sock.sendto(message, target_node_address)
 
 
 class NodeManager(object):
@@ -225,6 +232,7 @@ class NodeManager(object):
         self.alive_nodes = {} # {"xxxx":"2018-03-12 22:00:00",....}
 
         self.server.node_manager = self
+        self.blockchain = Blockchain()
 
         self.server_thread = threading.Thread(target=self.server.serve_forever)
         self.server_thread.daemon = True
@@ -237,9 +245,11 @@ class NodeManager(object):
         print '[Info] start new node', self.ip, self.port, self.node_id
 
     def ping(self, sock, server_node_id, target_node_address):
-        msg = packet.Ping(self.node_id, server_node_id)
+        payload = packet.Ping(self.node_id, server_node_id)
+        msg_obj = packet.Message("ping", payload)
+        msg_bytes = pickle.dumps(msg_obj)
         print '[Info] send ping'
-        self.client.ping(sock, target_node_address, msg)
+        self.client.ping(sock, target_node_address, msg_bytes)
 
     def pong(self, sock, server_node_id, target_node_address):
         """
@@ -248,35 +258,46 @@ class NodeManager(object):
         :param target_node_address: 目标节点的地址
         :return:
         """
-        msg = packet.Pong(self.node_id, server_node_id)
+        payload = packet.Pong(self.node_id, server_node_id)
+        msg_obj = packet.Message("pong", payload)
+        msg_bytes = pickle.dumps(msg_obj)
         print '[Info] send pong'
-        self.client.pong(sock, target_node_address, msg)
+        self.client.pong(sock, target_node_address, msg_bytes)
 
     def find_neighbors(self, node_id, rpc_id, sock, server_node_id, server_node_address):
-        msg = packet.FindNeighbors(node_id, self.node_id, server_node_id, rpc_id)
-        print '[Info] send find node', packet
-        self.client.find_neighbors(sock, server_node_address, msg)
+        payload = packet.FindNeighbors(node_id, self.node_id, server_node_id, rpc_id)
+        msg_obj = packet.Message("find_neighbors", payload)
+        msg_bytes = pickle.dumps(msg_obj)
+        print '[Info] send find node', payload
+        self.client.find_neighbors(sock, server_node_address, msg_bytes)
 
     def found_neighbors(self, node_id, rpc_id, neighbors, sock, server_node_id, server_node_address):
-
-        msg = packet.FoundNeighbors(node_id, self.node_id, server_node_id, rpc_id, neighbors)
-        print '[Info] send find neighbors', msg
-        self.client.found_neighbors(sock, server_node_address, msg)
+        payload = packet.FoundNeighbors(node_id, self.node_id, server_node_id, rpc_id, neighbors)
+        msg_obj = packet.Message("found_neighbors", payload)
+        msg_bytes = pickle.dumps(msg_obj)
+        print '[Info] send find neighbors', payload
+        self.client.found_neighbors(sock, server_node_address, msg_bytes)
 
     def find_value(self, key, rpc_id, sock, server_node_id, target_node_address):
-        msg = packet.FindValue(key, self.node_id, server_node_id, rpc_id)
-        print '[Info] send find value', msg
-        self.client.find_value(sock, target_node_address, msg)
+        payload = packet.FindValue(key, self.node_id, server_node_id, rpc_id)
+        msg_obj = packet.Message("find_value", payload)
+        msg_bytes = pickle.dumps(msg_obj)
+        print '[Info] send find value', payload
+        self.client.find_value(sock, target_node_address, msg_bytes)
 
     def found_value(self, key, value, rpc_id, sock, server_node_id, target_node_address):
-        msg = packet.FoundValue(key, value, self.node_id, server_node_id, rpc_id)
-        print '[Info] send found value', msg
-        self.client.found_value(sock, target_node_address, msg)
+        payload = packet.FoundValue(key, value, self.node_id, server_node_id, rpc_id)
+        msg_obj = packet.Message("found_value", payload)
+        msg_bytes = pickle.dumps(msg_obj)
+        print '[Info] send found value', payload
+        self.client.found_value(sock, target_node_address, msg_bytes)
 
     def store(self, key, value, sock, server_node_id, target_node_address):
-        msg = packet.Store(key, value, self.node_id, server_node_id)
-        print '[Info] send store', msg
-        self.client.store(sock, target_node_address, msg)
+        payload = packet.Store(key, value, self.node_id, server_node_id)
+        msg_obj = packet.Message("store", payload)
+        msg_bytes = pickle.dumps(msg_obj)
+        print '[Info] send store', payload
+        self.client.store(sock, target_node_address, msg_bytes)
 
     def iterative_find_nodes(self, key, seed_node=None):
         """
@@ -371,9 +392,6 @@ class NodeManager(object):
             time.sleep(10)
 
 
-
-
-
     def set_data(self, key, value):
         """
         数据存放:
@@ -412,4 +430,26 @@ class NodeManager(object):
             return value
         else:
             raise KeyError
+
+
+    def sendtx(self, tx):
+        """
+        广播一個交易
+        :param tx:
+        :return:
+        """
+        data_key = self.__hash_function(tx.txid)
+        k_nearest_ndoes = self.iterative_find_nodes(data_key)
+        print '[info] set data, k nearest nodes:', k_nearest_ndoes
+        if not k_nearest_ndoes:
+            self.data[data_key] = tx
+        for node in k_nearest_ndoes:
+            tx.from_id = self.node_id
+            msg_obj = packet.Message("sendtx", tx)
+            msg_bytes = pickle.dumps(msg_obj)
+            print '[Info] send tx', tx.json_output()
+            self.client.sendtx(self.server.socket, (node.ip, node.port), msg_bytes)
+
+
+
 

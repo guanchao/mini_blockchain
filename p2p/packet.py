@@ -1,19 +1,21 @@
+# coding=utf-8
 import json
 
-MSG_TYPE_PING = 101
-MSG_TYPE_PONG = 102
+class Message(object):
 
-MSG_TYPE_FIND_NEIGHBORS = 103
-MSG_TYPE_FOUND_NEIGHBORS = 104
+    def __init__(self, command, payload):
+        """
 
-MSG_TYPE_FIND_VALUE = 105
-MSG_TYPE_FOUND_VALUE = 106
+        :param command: <str> 命令
+        :param payload: <byte[]> 每个command对应的payload不一样
+        """
+        self.command = command
+        self.payload = payload
 
-MSG_TYPE_STORE = 107
+
 
 class Ping(object):
     def __init__(self, from_id, to_id):
-        self.msg_type = MSG_TYPE_PING
         self.from_id = from_id
         self.to_id = to_id
 
@@ -23,7 +25,6 @@ class Ping(object):
 
 class Pong(object):
     def __init__(self, from_id, to_id):
-        self.msg_type = MSG_TYPE_PONG
         self.from_id = from_id
         self.to_id = to_id
 
@@ -33,7 +34,6 @@ class Pong(object):
 
 class FindNeighbors(object):
     def __init__(self, target_id, from_id, to_id, rpc_id):
-        self.msg_type = MSG_TYPE_FIND_NEIGHBORS
         self.target_id = target_id
         self.from_id = from_id
         self.to_id = to_id
@@ -45,7 +45,6 @@ class FindNeighbors(object):
 
 class FoundNeighbors(object):
     def __init__(self, target_id, from_id, to_id, rpc_id, neighbors):
-        self.msg_type = MSG_TYPE_FOUND_NEIGHBORS
         self.target_id = target_id
         self.from_id = from_id
         self.to_id = to_id
@@ -58,7 +57,6 @@ class FoundNeighbors(object):
 
 class FindValue(object):
     def __init__(self, key, from_id, to_id, rpc_id):
-        self.msg_type = MSG_TYPE_FIND_VALUE
         self.key = key
         self.from_id = from_id
         self.to_id = to_id
@@ -70,7 +68,6 @@ class FindValue(object):
 
 class FoundValue(object):
     def __init__(self, key, value, from_id, to_id, rpc_id):
-        self.msg_type = MSG_TYPE_FOUND_VALUE
         self.key = key
         self.value = value
         self.from_id = from_id
@@ -83,7 +80,6 @@ class FoundValue(object):
 
 class Store(object):
     def __init__(self, key, value, from_id, to_id):
-        self.msg_type = MSG_TYPE_STORE
         self.key = key
         self.value = value
         self.from_id = from_id

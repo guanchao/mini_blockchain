@@ -31,8 +31,9 @@ TODO:
 
 app = Flask(__name__)
 
-blockchain = Blockchain()
 node_manager = NodeManager('localhost')
+blockchain = node_manager.blockchain
+
 print "Wallet address: %s" % blockchain.get_wallet_address()
 
 
@@ -61,6 +62,13 @@ def get_all_nodes():
 @app.route('/all_data', methods=['GET'])
 def get_all_data():
     datas = node_manager.data
+    output = json.dumps(datas, default=lambda obj: obj.__dict__, indent=4)
+    return output, 200
+
+
+@app.route('/unconfirmed_tx', methods=['GET'])
+def get_unconfirmed_tx():
+    datas = [tx.json_output() for tx in blockchain.current_transactions]
     output = json.dumps(datas, default=lambda obj: obj.__dict__, indent=4)
     return output, 200
 
@@ -159,15 +167,17 @@ def new_transaction():
     # Create a new Transaction
     index = blockchain.new_utxo_transaction(values['sender'], values['receiver'], values['amount'])
 
-
     if index >= 0:
+        # 广播交易
+        new_tx_idx = len(blockchain.current_transactions) - 1
+        node_manager.sendtx(blockchain.current_transactions[new_tx_idx])
         output = {
             'message': 'new transaction been created successfully!',
             'current_transactions': [tx.json_output() for tx in blockchain.current_transactions]
         }
         json_output = json.dumps(output, indent=4)
         return json_output, 200
-    #     try:
+    # try:
     #         block = blockchain.do_mine()
     #     except Error, Argument:
     #         response = {'message': Argument.message}

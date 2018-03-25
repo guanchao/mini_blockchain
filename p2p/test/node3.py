@@ -2,9 +2,14 @@
 import time
 
 from p2p.node import NodeManager, Node
+from transaction import *
 
 node = NodeManager("localhost", 3333)
-# node.bootstrap([Node("localhost", 52556, 196673591351741026896772690191245219040), Node("localhost", 52557, 17818964482619036755372369637216076230)])
+node.ping(node.server.socket, 144861665166259743440473887133821631928, ('localhost', 1111))
+time.sleep(10)
+
+tx = Transaction([TxInput(None, -1, "Reward to 123123", None)], [TxOutput(20, "654321")], time.time())
+node.sendtx(tx)
 
 while True:
     pass
