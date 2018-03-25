@@ -37,6 +37,12 @@ blockchain = node_manager.blockchain
 print "Wallet address: %s" % blockchain.get_wallet_address()
 
 
+@app.route('/candidates', methods=['GET'])
+def candidates():
+    output = json.dumps(blockchain.candidate_blocks, default=lambda obj: obj.__dict__, indent=4)
+    return output, 200
+
+
 @app.route('/ping', methods=['POST'])
 def ping():
     values = request.get_json()
@@ -125,6 +131,7 @@ def curr_node():
     }
     output = json.dumps(output, default=lambda obj: obj.__dict__, indent=4)
     return output, 200
+
 
 #
 # @app.route('/mine', methods=['GET'])

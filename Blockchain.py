@@ -24,13 +24,13 @@ class Blockchain(object):
         # 创世区块
         self.wallet = wallet.Wallet()
         self.chain.append(self.get_genius_block())
+        self.candidate_blocks = {}
 
     def get_genius_block(self):
         txin = TxInput(None, -1, None, None)
         pubkey_hash = Script.sha160(str(self.wallet.pubkey))
         # txoutput = TxOutput(100, pubkey_hash)
-
-        txoutput = TxOutput(100, "9e6502dd735fe8e7c5915e3e7e98bab46910daba")  # 创始区块，对应钱包地址：3qMi5hkuuCyqqdmy27Qm1UhEqEne
+        txoutput = TxOutput(100, "92ee59a7ee6ebc148ecf6fd282dbce557a8c28e7")  # 创始区块，对应钱包地址：3qMi5hkuuCyqqdmy27Qm1UhEqEne
         coinbase_tx = Transaction([txin], [txoutput], 1496518102)
         transactions = [coinbase_tx]
 
@@ -278,7 +278,7 @@ class Blockchain(object):
 
             # 遍历当前交易下所有的TxInput
             if not unconfirmed_tx.is_coinbase():
-                print 'txid:', txid
+                # print 'txid:', txid
                 # 记录当前tx下被from_addr被使用过的上一次交易的输出，即记录txid和out_idx
                 for txin in unconfirmed_tx.txins:
                     if txin.can_unlock_txoutput_with(from_addr):
@@ -299,7 +299,7 @@ class Blockchain(object):
 
         # Step1:获取from_addr下可以未使用过的TxOutput（打包在区块，已确认）
         for i in range(len(self.chain)):
-            print 'block index:', len(self.chain) - 1 - i
+            # print 'block index:', len(self.chain) - 1 - i
             block = self.chain[len(self.chain) - 1 - i]
             # 1.获取区块下的所有的交易
             transactions = block.get_transactions()
@@ -310,7 +310,6 @@ class Blockchain(object):
 
                 # 2.遍历某个交易下所有的TxInput
                 if not tx.is_coinbase():
-                    print 'txid:', txid
                     # 记录当前tx下被from_addr被使用过的上一次交易的输出，即记录txid和out_idx
                     for txin in tx.txins:
                         if txin.can_unlock_txoutput_with(from_addr):
@@ -369,9 +368,9 @@ class Blockchain(object):
                     tx = self.current_transactions[-1 -idx]
                     if not self.verify_transaction(tx):
                         txid = tx.txid
-                        print "Invalid transaction, remove it, tx:", tx
+                        # print "Invalid transaction, remove it, tx:", tx
                         self.current_transactions.remove(tx)
-                        raise Error("Invalid transaction. Txid:" + txid)
+                        raise Error("Invalid transaction, remove it. Txid:" + txid)
                     else:
                         valid_transactions.append(tx)
 
@@ -443,6 +442,20 @@ class Blockchain(object):
             print('Hash is invalid')
             return False
         return True
+
+    def set_consensus_chain(self):
+        # TODO 通过POW机制选取最长的链作为公有链
+        for block_index in self.candidate_blocks.keys():
+            prev_block = self.chain[block_index - 1]
+            curr_block = self.chain[block_index]
+            max_nonce_block = curr_block
+            for candidate_block in self.candidate_blocks[block_index]:
+                if candidate_block.previous_hash == prev_block.current_hash:
+                    if candidate_block.nonce > max_nonce_block.nonce:
+                        max_nonce_block = candidate_block
+
+            self.chain[block_index] = max_nonce_block
+
 
     def json_output(self):
         output = {
