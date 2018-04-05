@@ -24,13 +24,14 @@ class Blockchain(object):
         # 创世区块
         self.wallet = wallet.Wallet()
         self.chain.append(self.get_genius_block())
-        self.candidate_blocks = {}
+        # self.candidate_blocks = {}
+
 
     def get_genius_block(self):
         txin = TxInput(None, -1, None, None)
         pubkey_hash = Script.sha160(str(self.wallet.pubkey))
-        # txoutput = TxOutput(100, pubkey_hash)
-        txoutput = TxOutput(100, "92ee59a7ee6ebc148ecf6fd282dbce557a8c28e7")  # 创始区块，对应钱包地址：3qMi5hkuuCyqqdmy27Qm1UhEqEne
+        txoutput = TxOutput(100, pubkey_hash)
+        # txoutput = TxOutput(100, "a190ed98da431b1dbc8d7a9f76d9bbae4bf0327b")  # 创始区块
         coinbase_tx = Transaction([txin], [txoutput], 1496518102)
         transactions = [coinbase_tx]
 
@@ -39,28 +40,28 @@ class Blockchain(object):
         nonce = 0
 
         genish_block_hash = calculate_hash(index=0,
-                                           previous_hash='0000000000000000000000000000000000000000000000000000000000000000',
+                                           previous_hash='00000000000000000000000000000000000000000000000000000000000000',
                                            timestamp=1496518102,
                                            merkleroot=merkleroot,
                                            nonce=nonce,
                                            difficulty=self.difficulty)
         while genish_block_hash[0:self.difficulty] != '0' * self.difficulty:
             genish_block_hash = calculate_hash(index=0,
-                                               previous_hash='0000000000000000000000000000000000000000000000000000000000000000',
+                                               previous_hash='00000000000000000000000000000000000000000000000000000000000000',
                                                timestamp=1496518102,
                                                merkleroot=merkleroot,
                                                nonce=nonce,
                                                difficulty=self.difficulty)
             nonce += 1
         genius_block = Block(index=0,
-                             previous_hash='0000000000000000000000000000000000000000000000000000000000000000',
+                             previous_hash='00000000000000000000000000000000000000000000000000000000000000',
                              timestamp=1496518102,
                              nonce=nonce,
                              current_hash=genish_block_hash,
                              difficulty=self.difficulty)
         genius_block.merkleroot = merkleroot
         genius_block.transactions = transactions
-        print 'genius block transactions: ', transactions
+        # print 'genius block transactions: ', transactions
 
         return genius_block
 
@@ -124,8 +125,10 @@ class Blockchain(object):
             return
 
         tx_copy = self.trimmed_copy_tx(tx)  # 每个输入的signature和pubkey设置为None
+
+        signature_flag = dict()
         for in_idx in range(len(tx_copy.txins)):
-            txin = tx_copy.txins[in_idx]
+            txin = tx_copy.txins[-1 - in_idx]
             prev_tx = prev_txid_2_tx[txin.prev_txid]
 
             txin.signature = None
@@ -134,13 +137,17 @@ class Blockchain(object):
             txin.pubkey = None
 
             signature = rsa.sign(data.encode(), privkey, 'SHA-256')
-            tx.txins[in_idx].signature = signature
+            signature_flag[in_idx] = signature
+
+        for in_idx in range(len(tx_copy.txins)):
+            if in_idx in signature_flag:
+                tx.txins[in_idx].signature = signature_flag[in_idx]
 
     def sign_transaction(self, tx, privkey):
+
         prev_txid_2_tx = dict()
         for txin in tx.txins:
             prev_txid_2_tx[txin.prev_txid] = self.find_transaction(txin.prev_txid)
-        print prev_txid_2_tx
         self.sign(tx, privkey, prev_txid_2_tx)
 
     def verify_transaction(self, tx):
@@ -150,9 +157,11 @@ class Blockchain(object):
         :param tx: <Transaction>对象
         :return:
         """
+
         prev_txid_2_tx = dict()
         for txin in tx.txins:
             prev_txid_2_tx[txin.prev_txid] = self.find_transaction(txin.prev_txid)
+
         return self.verify(tx, prev_txid_2_tx)
 
     def verify(self, tx, prev_txid_2_tx):
@@ -194,6 +203,7 @@ class Blockchain(object):
         :return:
         """
         # 在区块中寻找（已确认的交易）
+
         for i in range(len(self.chain)):
             block = self.chain[-1 -i]
             # 1.获取区块下的所有的交易
@@ -202,12 +212,14 @@ class Blockchain(object):
                 if tx.txid == txid:
                     return tx
 
-        # 在交易池中寻找（未确认的交易）
+        # 在交易池中寻找（未确认的交易）TODO待确认
         for k in range(len(self.current_transactions)):
             uncomfirmed_tx = self.current_transactions[-1 -k]
             if uncomfirmed_tx.txid == txid:
                 return uncomfirmed_tx
         return None
+
+
 
     def get_balance(self, address):
         """
@@ -224,7 +236,7 @@ class Blockchain(object):
     def new_utxo_transaction(self, from_addr, to_addr, amount):
         """
         from_addr向to_addr发送amount量的货币，步骤：
-        Step1：首先获取from_addr下未使用过的TxOutput输出(未使用的UTXO)
+        Step1：首先从区块中获取from_addr下未使用过的TxOutput输出(未使用的UTXO)
         Step2：获取上一步TxOutput列表中value之和sum，并与amount相比
         Step3：如果sum<amount，则标识from_addr余额不够，无法交易；如果sum>=amount，则from_addr足够余额用于交易，多出的部分用于找零
         Step4：构造Transaction对象，并传入此次交易的输入和输出
@@ -239,7 +251,8 @@ class Blockchain(object):
         outputs = list()
         balance, unspent_txout_list = self.find_spendalbe_outputs(from_addr)
         if balance < amount:
-            return -1
+            print 'not enough money!'
+            return None
 
         # 构造Tx的输入
         for txid, out_idx, txout in unspent_txout_list:
@@ -251,14 +264,13 @@ class Blockchain(object):
         outputs.append(txout)
         if balance > amount:
             # 找零
-            # TODO 交易费
             outputs.append(TxOutput(balance - amount, Script.sha160(str(self.wallet.pubkey))))
 
         tx = Transaction(inputs, outputs, int(time()))
         self.sign_transaction(tx, self.wallet.privkey)  # 签名Tx
 
         self.current_transactions.append(tx)
-        return self.chain[-1].index + 1
+        return tx
 
     def find_spendalbe_outputs(self, from_addr):
         """
@@ -269,7 +281,6 @@ class Blockchain(object):
         unspent_txout_list = list()
         spent_txout_list = list()
         balance = 0
-
         # Step0：遍历交易池中已经发生过的交易（未打包进区块，未确认）
         # 备注：要从最新的交易开始遍历!!!!!
         for i in range(len(self.current_transactions)):
@@ -285,8 +296,6 @@ class Blockchain(object):
                         spent_txid = txin.prev_txid
                         spent_tx_out_idx = txin.prev_tx_out_idx
                         spent_txout_list.append((spent_txid, spent_tx_out_idx))
-            else:
-                print 'txid:', txid, ' is coinbase'
 
             # 遍历交易下所有的未使用过的TxOutput
             for out_idx in range(len(unconfirmed_tx.txouts)):
@@ -294,7 +303,6 @@ class Blockchain(object):
                 if not (txid, out_idx) in spent_txout_list:
                     if txout.can_be_unlocked_with(from_addr):
                         unspent_txout_list.append((txid, out_idx, txout))
-
         #--------------------------------------------------
 
         # Step1:获取from_addr下可以未使用过的TxOutput（打包在区块，已确认）
@@ -306,6 +314,9 @@ class Blockchain(object):
             # 备注：要从最新的交易开始遍历!!!!!
             for k in range(len(transactions)):
                 tx = transactions[len(transactions) - 1 - k]
+                if not self.verify_transaction(tx): # 校验交易是否有效
+                    print 'invalid tx', tx.txid
+                    continue
                 txid = tx.txid  # 当前交易的id
 
                 # 2.遍历某个交易下所有的TxInput
@@ -316,36 +327,66 @@ class Blockchain(object):
                             spent_txid = txin.prev_txid
                             spent_tx_out_idx = txin.prev_tx_out_idx
                             spent_txout_list.append((spent_txid, spent_tx_out_idx))
-                else:
-                    print 'txid:', txid, ' is coinbase'
 
                 # 3.遍历某个交易下所有的未使用过的TxOutput
                 for out_idx in range(len(tx.txouts)):
                     txout = tx.txouts[out_idx]
                     if not (txid, out_idx) in spent_txout_list:
                         if txout.can_be_unlocked_with(from_addr):
+                            print 'unlock....'
                             unspent_txout_list.append((txid, out_idx, txout))
+                        else:
+                            print 'can not unlock'
         # Step2：计算这些未使用过的TxOutput货币之和
         for txid, out_idx, txout in unspent_txout_list:
             balance += txout.value
-
         return balance, unspent_txout_list
 
-    def do_mine(self):
+    def do_mine(self, lock):
         """
         进行挖矿，验证当前节点收集的交易，并将有效交易打包成区块
 
         :return:
         """
-        if len(self.current_transactions) < 5:
-            # 至少要有5个以上的交易才可以开始进行挖矿
-            raise Error("Not enough transactions!")
 
         nonce = 0
         timestamp = int(time())
-        print('Minning a block...')
+        # print('Minning a block...')
         new_block_found = False
         new_block_attempt = None
+
+        with lock:
+            # 验证每一笔交易的有效性(备注：从最新的开始验证)
+            valid_transactions = list()
+            for idx in range(len(self.current_transactions)):
+                tx = self.current_transactions[-1 - idx]
+                if not self.verify_transaction(tx):
+                    # 先保留
+                    txid = tx.txid
+                    print "Invalid transaction, remove it, tx:"
+                    self.current_transactions.remove(tx)
+                    raise Error("[do mine] Invalid transaction, remove it. Txid:" + txid)
+                # else:
+                #     # self.current_transactions.remove(tx)
+                #     valid_transactions.append(tx)
+
+            if len(self.current_transactions) < 5:
+                # 至少要有5个以上的交易才可以开始进行挖矿
+                raise Error("Not enough valid transactions!")
+
+
+            # # 如果未确认交易过多，超过20个，则移除旧的10个交易
+            # if len(self.current_transactions) > 20:
+            #     self.current_transactions = sorted(self.current_transactions, key=lambda x:x.timestamp, reverse=False)
+            #     for idx in range(10):
+            #         tx = self.current_transactions[idx]
+            #         self.current_transactions.remove(tx)
+
+            # 给工作量证明的节点提供奖励
+            # 发送者为"0" 表明新挖出的币
+            # coinbase_tx = self.new_coinbase_tx(self.get_wallet_address())
+            # valid_transactions.append(coinbase_tx)
+            self.current_transactions = sorted(self.current_transactions, key=lambda x:x.timestamp, reverse=False) # 时间由小到大排
 
         merkletrees = MerkleTrees(self.current_transactions)
         merkleroot = merkletrees.get_root_leaf()
@@ -362,26 +403,9 @@ class Blockchain(object):
                 cos_timestamp = end_timestamp - timestamp
                 print('New block found with nonce ' + str(nonce) + ' in ' + str(round(cos_timestamp, 2)) + ' seconds.')
 
-                # 验证每一笔交易的有效性(备注：从最新的开始验证)
-                valid_transactions = list()
-                for idx in range(len(self.current_transactions)):
-                    tx = self.current_transactions[-1 -idx]
-                    if not self.verify_transaction(tx):
-                        txid = tx.txid
-                        # print "Invalid transaction, remove it, tx:", tx
-                        self.current_transactions.remove(tx)
-                        raise Error("Invalid transaction, remove it. Txid:" + txid)
-                    else:
-                        valid_transactions.append(tx)
-
-                # 给工作量证明的节点提供奖励
-                # 发送者为"0" 表明新挖出的币
-                coinbase_tx = self.new_coinbase_tx(self.get_wallet_address())
-                valid_transactions.append(coinbase_tx)
-
-                # 添加到区块链中
                 # 交易按照timestamp从旧到新（小->大）
-                new_block_attempt.transactions = sorted(valid_transactions, key=lambda x:x.timestamp, reverse=False)
+                new_block_attempt.transactions = self.current_transactions
+                # new_block_attempt.transactions = sorted(valid_transactions, key=lambda x:x.timestamp, reverse=False)
                 # 将所有交易保存成Merkle树
                 new_block_attempt.merkleroot = merkleroot
 
@@ -443,18 +467,27 @@ class Blockchain(object):
             return False
         return True
 
-    def set_consensus_chain(self):
-        # TODO 通过POW机制选取最长的链作为公有链
-        for block_index in self.candidate_blocks.keys():
-            prev_block = self.chain[block_index - 1]
-            curr_block = self.chain[block_index]
-            max_nonce_block = curr_block
-            for candidate_block in self.candidate_blocks[block_index]:
-                if candidate_block.previous_hash == prev_block.current_hash:
-                    if candidate_block.nonce > max_nonce_block.nonce:
-                        max_nonce_block = candidate_block
-
-            self.chain[block_index] = max_nonce_block
+    # def set_consensus_chain(self):
+    #     # TODO 通过POW机制选取最长的链作为公有链
+    #     print 'consensusing......'
+    #     for block_index in self.candidate_blocks.keys():
+    #         if block_index <= len(self.chain) - 1:
+    #             curr_block = self.chain[block_index]
+    #             max_nonce_block = curr_block
+    #             for candidate_block in self.candidate_blocks[block_index]:
+    #                 if (candidate_block.previous_hash == curr_block.previous_hash) and (candidate_block.nonce > max_nonce_block.nonce):
+    #                     max_nonce_block = candidate_block
+    #
+    #             #校验每一笔交易
+    #             valid_flag = True
+    #             for idx in range(len(max_nonce_block.transactions)):
+    #                 tx = max_nonce_block.transactions[-1 - idx]
+    #                 if not self.verify_transaction(tx):
+    #                     valid_flag = False
+    #
+    #             if valid_flag and max_nonce_block.current_hash != curr_block.current_hash:
+    #                 print 'consensusing, replace with new block', max_nonce_block.current_hash
+    #                 self.chain[block_index] = max_nonce_block
 
 
     def json_output(self):

@@ -1,11 +1,12 @@
 # coding:utf-8
 import json
-from binascii import Error
+import time
 
 from flask import Flask, jsonify, request
 
-from Blockchain import Blockchain
 from p2p.node import NodeManager, Node
+from script import Script, get_address_from_ripemd160
+from wallet import Wallet
 
 try:
     from urllib.parse import urlparse
@@ -111,7 +112,7 @@ def bootstrap():
     if not all(k in values for k in required):
         return 'Missing values', 400
     seeds = values['seeds']
-    print json.dumps(seeds, default=lambda obj: obj.__dict__, indent=4)
+    # print json.dumps(seeds, default=lambda obj: obj.__dict__, indent=4)
     seed_nodes = list()
     for seed in seeds:
         seed_nodes.append(Node(seed['ip'], seed['port'], seed['node_id']))
@@ -127,7 +128,9 @@ def curr_node():
     output = {
         'node_id': node_manager.node_id,
         'ip': node_manager.ip,
-        'port': node_manager.port
+        'port': node_manager.port,
+        'wallet': blockchain.get_wallet_address(),
+        'pubkey_hash': Script.sha160(str(blockchain.wallet.pubkey))
     }
     output = json.dumps(output, default=lambda obj: obj.__dict__, indent=4)
     return output, 200
@@ -164,6 +167,20 @@ def full_chain():
     return json_output, 200
 
 
+@app.route('/candidate_blocks', methods=['GET'])
+def candidate_blocks():
+    # output = {
+    #     'length': len(blockchain.candidate_blocks),
+    #     'candidate_blocks': [block.json_output() for block in blockchain.candidate_blocks],
+    # }
+    for block_index in blockchain.candidate_blocks.keys():
+        for candidate_block in blockchain.candidate_blocks[block_index]:
+            print block_index, candidate_block.json_output()
+    # json_output = json.dumps(output, indent=4)
+    # return json_output, 200
+    return 'ok', 200
+
+
 @app.route('/transactions/new', methods=['POST'])
 def new_transaction():
     values = request.get_json()
@@ -172,12 +189,11 @@ def new_transaction():
         return 'Missing values', 400
 
     # Create a new Transaction
-    index = blockchain.new_utxo_transaction(values['sender'], values['receiver'], values['amount'])
+    new_tx = blockchain.new_utxo_transaction(values['sender'], values['receiver'], values['amount'])
 
-    if index >= 0:
+    if new_tx:
         # 广播交易
-        new_tx_idx = len(blockchain.current_transactions) - 1
-        node_manager.sendtx(blockchain.current_transactions[new_tx_idx])
+        node_manager.sendtx(new_tx)
         output = {
             'message': 'new transaction been created successfully!',
             'current_transactions': [tx.json_output() for tx in blockchain.current_transactions]
@@ -213,6 +229,157 @@ def get_balance():
         'address': address,
         'balance': blockchain.get_balance(address)
     }
+    return jsonify(response), 200
+
+
+@app.route('/node_info', methods=['POST'])
+def node_info():
+    values = request.get_json()
+    required = ['ip', 'port']
+    if not all(k in values for k in required):
+        return 'Missing values', 400
+
+    ip = values['ip']
+    port = values['port']
+    block_height = len(blockchain.chain)
+    block_hash = blockchain.chain[-1].current_hash
+    timestamp = blockchain.chain[-1].timestamp
+
+    time_local = time.localtime(timestamp)
+
+    response = {
+        'address': ip + ':' + str(port),
+        'block_height': block_height,
+        'block_hash': block_hash,
+        'wallet_address': blockchain.wallet.address,
+        # 'balance': blockchain.get_balance(blockchain.wallet.address),
+        'timestamp': time.strftime("%Y-%m-%d %H:%M:%S", time_local)
+    }
+    return jsonify(response), 200
+
+
+@app.route('/tx_info', methods=['GET'])
+def tx_info():
+    values = request.get_json()
+
+    block_index = int(request.args.get('block_index'))
+    txid = request.args.get('txid')
+
+    block = blockchain.chain[block_index]
+    for tx in block.transactions:
+        if tx.txid == txid:
+            return json.dumps(tx.json_output()), 200
+
+    return 'not exist!', 200
+
+
+@app.route('/unconfirm_tx_info', methods=['GET'])
+def unconfirm_tx_info():
+    txid = request.args.get('txid')
+
+    for tx in blockchain.current_transactions:
+        if tx.txid == txid:
+            return json.dumps(tx.json_output()), 200
+
+    return 'not exist!', 200
+
+
+@app.route('/height', methods=['GET'])
+def block_height():
+    response = {
+        'code': 0,
+        'value': len(blockchain.chain)
+    }
+    return json.dumps(response), 200
+
+
+@app.route('/latest_tx', methods=['GET'])
+def latest_tx():
+    json_transaction = list()
+    for tx in blockchain.current_transactions:
+        txins = tx.txins
+        txouts = tx.txouts
+
+        from_addr = list()
+        to_addr = list()
+        amount = 0
+        for txin in txins:
+            if txin.prev_tx_out_idx != -1:
+                pubkey_hash = Wallet.get_address(txin.pubkey)
+                if pubkey_hash not in from_addr:
+                    from_addr.append(pubkey_hash)
+
+        for txout in txouts:
+            value = txout.value
+            script_pub_key = txout.scriptPubKey
+            if len(script_pub_key) == 5:
+                recv_addr = get_address_from_ripemd160(script_pub_key[2])
+                to_addr.append({'receiver': recv_addr, 'value': value})
+
+        new_tx = {
+            'txid': tx.txid,
+            'senders': from_addr,
+            'receivers': to_addr,
+            'amount': amount,
+            'timestamp': tx.timestamp
+        }
+
+        json_transaction.append(new_tx)
+
+    response = {
+        'latest_tx': json_transaction
+    }
+    return json.dumps(response), 200
+
+
+@app.route('/block_info', methods=['GET'])
+def block_info():
+    height = request.args.get('height')
+    block_index = int(height) - 1
+    block = blockchain.chain[block_index]
+
+    json_transaction = list()
+    for tx in block.transactions:
+        txins = tx.txins
+        txouts = tx.txouts
+
+        from_addr = list()
+        to_addr = list()
+        amount = 0
+        for txin in txins:
+            if txin.prev_tx_out_idx != -1:
+                address = Wallet.get_address(txin.pubkey)
+                if address not in from_addr:
+                    from_addr.append(address)
+
+        for txout in txouts:
+            value = txout.value
+            script_pub_key = txout.scriptPubKey
+            if len(script_pub_key) == 5:
+                recv_addr = get_address_from_ripemd160(script_pub_key[2])
+                to_addr.append({'receiver': recv_addr, 'value': value})
+
+        new_tx = {
+            'txid': tx.txid,
+            'senders': from_addr,
+            'receivers': to_addr,
+            'amount': amount,
+            'timestamp': tx.timestamp
+        }
+
+        json_transaction.append(new_tx)
+
+    response = {
+        'index': block.index,
+        'current_hash': block.current_hash,
+        'previous_hash': block.previous_hash,
+        'timestamp': block.timestamp,
+        'merkleroot': block.merkleroot,
+        'difficulty': block.difficulty,
+        'nonce': block.nonce,
+        'transactions': json_transaction
+    }
+
     return jsonify(response), 200
 
 

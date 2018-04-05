@@ -18,7 +18,7 @@ class MerkleTrees(object):
         temp_transaction = []
 
         if len(transaction_list) != 1:
-            print transaction_list
+            # print transaction_list
 
             for index in range(0, len(transaction_list), 2):
                 left_leaf = transaction_list[index]
@@ -67,13 +67,13 @@ class MerkleTrees(object):
         last_key = self.transaction_tree.keys()[-1]
         return self.transaction_tree[last_key]
 
-    def find_unspent_transactions(self, address):
-        for transaction in self.get_transaction_list():
-            print transaction
+    # def find_unspent_transactions(self, address):
+    #     for transaction in self.get_transaction_list():
+    #         print transaction
 
-    def find_spendalbe_outputs(self, from_addr, amount):
-        for block in self.chain:
-            print block
+    # def find_spendalbe_outputs(self, from_addr, amount):
+    #     for block in self.chain:
+    #         print block
 
 #
 # if __name__ == "__main__":

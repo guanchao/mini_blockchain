@@ -2,6 +2,8 @@
 
 # 参考：https://en.bitcoin.it/wiki/Script
 import hashlib
+from binascii import hexlify, unhexlify
+
 import rsa
 
 from wallet import Wallet
@@ -98,7 +100,6 @@ class Script(object):
         """
         sha = hashlib.sha256(data.encode('utf-8'))
         hash_256_value = sha.hexdigest()
-        print hash_256_value
         obj = hashlib.new('ripemd160', hash_256_value.encode('utf-8'))
         ripemd_160_value = obj.hexdigest()
         return ripemd_160_value
@@ -115,7 +116,7 @@ class Script(object):
         stack = Stack()
         for element in scriptSig:
             stack.push(element)
-        stack.output()
+        # stack.output()
 
         for element in scriptPubKey:
             if element == OP_DUP:
@@ -136,7 +137,7 @@ class Script(object):
                 stack.push(result)
             else:
                 stack.push(element)
-            stack.output()
+            # stack.output()
 
         if stack.size() == 1 and stack.peek() == True:
             return True
@@ -170,20 +171,11 @@ class Stack:
         # return json.dumps(self.items, default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
         for _v in [str(item) for item in self.items]:
             print _v
-print Script.sha160('hello')
 
 
 def get_address_from_ripemd160(ripemd_hash):
-    #  steps from https://en.bitcoin.it/wiki/Technical_background_of_version_1_Bitcoin_addresses
-    h3 = ripemd_hash
-    h4 = '00' + h3
-    h5 = hashlib.sha256(h4.decode('hex')).hexdigest()
-    h6 = hashlib.sha256(h5.decode('hex')).hexdigest()
-    h7 = h6[0:8]
-    h8 = h4 + h7
-    h9 = Wallet.b58encode(h8.decode('hex'))
-
-    return h9
+    Wallet.b58encode(unhexlify(ripemd_hash.decode('utf8')))
+    return Wallet.b58encode(unhexlify(ripemd_hash.decode('utf8')))
 
 
 # print get_address_from_ripemd160(Script.sha160('hello'))
@@ -202,6 +194,12 @@ def get_address_from_ripemd160(ripemd_hash):
 #
 # pubkey_hash = Script.sha160(str(wallet.pubkey))
 #
+# pubkey_hash = '9887c289e8f1ae1887c27736cfde19c1ba0f7677'
+# print '-----'
+# print unhexlify(pubkey_hash.decode('utf8'))
+# # print type(bytes(pubkey_hash).decode('utf-8'))
+# print Wallet.b58encode(unhexlify(pubkey_hash.decode('utf8')))
+# #
 #
 # #
 # print wallet.pubkey

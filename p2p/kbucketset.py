@@ -52,7 +52,7 @@ class KBucketSet(object):
         """
         if self.node_id == node.node_id:
             return
-        bucket_number = self.__get_bucket_number(node.node_id)
+        bucket_number = self.get_bucket_number(node.node_id)
         with self.lock:
             bucket = self.buckets[bucket_number]
             if len(bucket) < self.k:  # bucket未满
@@ -92,7 +92,7 @@ class KBucketSet(object):
         """
         return node_id1 ^ node_id2
 
-    def __get_bucket_number(self, node_id):
+    def get_bucket_number(self, node_id):
         """
         获取目标节点相对于当前节点所在的bucket位置
         :param node_id:
@@ -104,6 +104,16 @@ class KBucketSet(object):
             distance >>= 1
             length += 1
         return max(0, length)
+
+    def get_bucket(self, bucket_number):
+        return self.buckets[bucket_number]
+
+    def exist(self, node_id):
+        for bucket in self.buckets:
+            for node in bucket:
+                if node.node_id == node_id:
+                    return True
+        return False
 
 
 
