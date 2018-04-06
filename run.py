@@ -225,11 +225,11 @@ def new_transaction():
 
 
 @app.route('/balance', methods=['GET'])
-def get_balance():
+def get_balance(): # TODO
     address = request.args.get('address')
     response = {
         'address': address,
-        'balance': blockchain.get_balance(address)
+        'balance': blockchain.get_balance_by_db(address)
     }
     return jsonify(response), 200
 
@@ -280,7 +280,7 @@ def tx_info():
 def unconfirm_tx_info():
     txid = request.args.get('txid')
 
-    for tx in blockchain.current_transactions:
+    for tx in db.get_all_unconfirmed_tx(blockchain.wallet.address):
         if tx.txid == txid:
             return json.dumps(tx.json_output()), 200
 
@@ -299,7 +299,7 @@ def block_height():
 @app.route('/latest_tx', methods=['GET'])
 def latest_tx():
     json_transaction = list()
-    for tx in blockchain.current_transactions:
+    for tx in db.get_all_unconfirmed_tx(blockchain.wallet.address):
         txins = tx.txins
         txouts = tx.txouts
 

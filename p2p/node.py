@@ -158,6 +158,7 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
                     return
 
             blockchain.current_transactions.append(new_tx)
+            db.write_unconfirmed_tx_to_db(blockchain.wallet.address, new_tx)
 
     def handle_sendblock(self, payload):
         # TODO 增加区块池机制（保存临时区块）
@@ -187,6 +188,7 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
                     db.write_to_db(blockchain.wallet.address, new_block)
                     # 重新挖矿
                     blockchain.current_transactions = []
+                    db.clear_unconfirmed_tx_from_disk(blockchain.wallet.address)
             else:
                 self.add_to_candidate_blocks(blockchain, new_block)
 

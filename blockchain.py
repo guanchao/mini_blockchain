@@ -33,7 +33,7 @@ class Blockchain(object):
         txin = TxInput(None, -1, None, None)
         pubkey_hash = Script.sha160(str(self.wallet.pubkey))
         # txoutput = TxOutput(100, pubkey_hash)
-        txoutput = TxOutput(100, "c05e84fe7d5ebd65f366cf19af84a86c04be7097")  # 创始区块
+        txoutput = TxOutput(100, "3a854110ec1d6d2f3e1483c26dfc243015032a31")  # 创始区块
         coinbase_tx = Transaction([txin], [txoutput], 1496518102)
         transactions = [coinbase_tx]
 
@@ -274,7 +274,80 @@ class Blockchain(object):
         self.sign_transaction(tx, self.wallet.privkey)  # 签名Tx
 
         self.current_transactions.append(tx)
+        db.write_unconfirmed_tx_to_db(self.wallet.address, tx)
         return tx
+
+    def get_balance_by_db(self, from_addr):
+        """
+            获取from_addr可以用于交易的TxOutput（未使用过的），
+            :param from_addr: <str>发送方钱包地址
+            :return:
+            """
+        unspent_txout_list = list()
+        spent_txout_list = list()
+        balance = 0
+        # Step0：遍历交易池中已经发生过的交易（未打包进区块，未确认）
+        # 备注：要从最新的交易开始遍历!!!!!
+        current_transactions = db.get_all_unconfirmed_tx(self.wallet.address)
+        current_transactions = sorted(current_transactions, key=lambda x: x.timestamp, reverse=False)
+        for i in range(len(current_transactions)):
+            unconfirmed_tx = current_transactions[len(current_transactions) - 1 - i]
+            txid = unconfirmed_tx.txid
+
+            # 遍历当前交易下所有的TxInput
+            if not unconfirmed_tx.is_coinbase():
+                # print 'txid:', txid
+                # 记录当前tx下被from_addr被使用过的上一次交易的输出，即记录txid和out_idx
+                for txin in unconfirmed_tx.txins:
+                    if txin.can_unlock_txoutput_with(from_addr):
+                        spent_txid = txin.prev_txid
+                        spent_tx_out_idx = txin.prev_tx_out_idx
+                        spent_txout_list.append((spent_txid, spent_tx_out_idx))
+
+            # 遍历交易下所有的未使用过的TxOutput
+            for out_idx in range(len(unconfirmed_tx.txouts)):
+                txout = unconfirmed_tx.txouts[out_idx]
+                if not (txid, out_idx) in spent_txout_list:
+                    if txout.can_be_unlocked_with(from_addr):
+                        unspent_txout_list.append((txid, out_idx, txout))
+        # --------------------------------------------------
+
+        # Step1:获取from_addr下可以未使用过的TxOutput（打包在区块，已确认）
+        block_height = db.get_block_height(self.wallet.address)
+
+        for i in range(block_height):
+            block = db.get_block_data_by_index(self.wallet.address, block_height - 1 - i)
+            # 1.获取区块下的所有的交易
+            transactions = block.get_transactions()
+            # 备注：要从最新的交易开始遍历!!!!!
+            for k in range(len(transactions)):
+                tx = transactions[len(transactions) - 1 - k]
+                if not self.verify_transaction(tx):  # 校验交易是否有效
+                    print 'invalid tx', tx.txid
+                    continue
+                txid = tx.txid  # 当前交易的id
+
+                # 2.遍历某个交易下所有的TxInput
+                if not tx.is_coinbase():
+                    # 记录当前tx下被from_addr被使用过的上一次交易的输出，即记录txid和out_idx
+                    for txin in tx.txins:
+                        if txin.can_unlock_txoutput_with(from_addr):
+                            spent_txid = txin.prev_txid
+                            spent_tx_out_idx = txin.prev_tx_out_idx
+                            spent_txout_list.append((spent_txid, spent_tx_out_idx))
+
+                # 3.遍历某个交易下所有的未使用过的TxOutput
+                for out_idx in range(len(tx.txouts)):
+                    txout = tx.txouts[out_idx]
+                    if not (txid, out_idx) in spent_txout_list:
+                        if txout.can_be_unlocked_with(from_addr):
+                            print 'unlock....'
+                            unspent_txout_list.append((txid, out_idx, txout))
+
+        # Step2：计算这些未使用过的TxOutput货币之和
+        for txid, out_idx, txout in unspent_txout_list:
+            balance += txout.value
+        return balance
 
     def find_spendalbe_outputs(self, from_addr):
         """
@@ -366,7 +439,7 @@ class Blockchain(object):
                 # 先保留
                 txid = tx.txid
                 print "Invalid transaction, remove it, tx:"
-                self.current_transactions.remove(tx)
+                # self.current_transactions.remove(tx)
                 raise Error("[do mine] Invalid transaction, remove it. Txid:" + txid)
             # else:
             #     # self.current_transactions.remove(tx)
@@ -408,6 +481,7 @@ class Blockchain(object):
                 # self.chain.append(new_block_attempt)
                 db.write_to_db(self.wallet.address, new_block_attempt)
                 self.current_transactions = []
+                db.clear_unconfirmed_tx_from_disk(self.wallet.address)
 
                 new_block_found = True
             else:
