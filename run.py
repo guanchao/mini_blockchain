@@ -195,6 +195,7 @@ def new_transaction():
     if new_tx:
         # 广播交易
         node_manager.sendtx(new_tx)
+        print '[++++++++++++] sendtx', new_tx.txid
         output = {
             'message': 'new transaction been created successfully!',
             'current_transactions': [tx.json_output() for tx in blockchain.current_transactions]

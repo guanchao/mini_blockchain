@@ -33,7 +33,7 @@ class Blockchain(object):
         txin = TxInput(None, -1, None, None)
         pubkey_hash = Script.sha160(str(self.wallet.pubkey))
         # txoutput = TxOutput(100, pubkey_hash)
-        txoutput = TxOutput(100, "e2f52718448427215b2731abfd4be43a39b075b0")  # 创始区块
+        txoutput = TxOutput(100, "c05e84fe7d5ebd65f366cf19af84a86c04be7097")  # 创始区块
         coinbase_tx = Transaction([txin], [txoutput], 1496518102)
         transactions = [coinbase_tx]
 
@@ -467,7 +467,6 @@ class Blockchain(object):
 
     def set_consensus_chain(self):
         # TODO 通过POW机制选取最长的链作为公有链
-        print 'consensusing......'
         for block_index in self.candidate_blocks.keys():
             if block_index <= db.get_block_height(self.get_wallet_address())- 1:
                 curr_block = db.get_block_data_by_index(self.get_wallet_address(), block_index)
@@ -484,7 +483,7 @@ class Blockchain(object):
                         valid_flag = False
 
                 if valid_flag and max_nonce_block.current_hash != curr_block.current_hash:
-                    print 'consensusing, replace with new block', max_nonce_block.current_hash
+                    print '[consensusing], replace with new block', max_nonce_block.current_hash
                     db.write_to_db(self.get_wallet_address(), max_nonce_block)
 
 

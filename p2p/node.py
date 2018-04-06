@@ -9,6 +9,8 @@ import random
 import time
 from binascii import Error
 
+import zlib
+
 import db
 from blockchain import Blockchain
 from p2p import constant
@@ -31,7 +33,7 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
         备注：self.client_address是BaseRequestHandler的成员变量，记录连接到服务端的client地址
         :return:
         """
-        msg_obj = pickle.loads(self.request[0])
+        msg_obj = pickle.loads(zlib.decompress(self.request[0]))
         command = msg_obj.command
         payload = msg_obj.payload
 
@@ -139,30 +141,35 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
 
     def handle_sendtx(self, payload):
         # print '[Info] handle sendtx, find new tx:', payload.json_output()
+        new_tx = payload
+        print '[------------] got tx', new_tx.txid
         with self.server.node_manager.lock:
             blockchain = self.server.node_manager.blockchain
-            new_tx = payload
+
             # 判断区块中是否存在
             if blockchain.find_transaction(new_tx.txid):
-                print '[Info] txid:', new_tx.txid, 'is already in block, duplicated, ignore ti!'
+                # print '[Info] txid:', new_tx.txid, 'is already in block, duplicated, ignore ti!'
                 return
             # 判断交易池中是否存在
             for k in range(len(blockchain.current_transactions)):
                 uncomfirmed_tx = blockchain.current_transactions[-1 - k]
                 if uncomfirmed_tx.txid == new_tx.txid:
-                    print '[Info] txid:', new_tx.txid, 'is already in tx pool, duplicated, ignore ti!'
+                    # print '[Info] txid:', new_tx.txid, 'is already in tx pool, duplicated, ignore ti!'
                     return
 
             blockchain.current_transactions.append(new_tx)
 
     def handle_sendblock(self, payload):
         # TODO 增加区块池机制（保存临时区块）
+        new_block = payload
+        print 'Handle sendblock from ', self.client_address
+        print '[-----------]got block', new_block.index, new_block.nonce, new_block.current_hash, new_block.previous_hash
+
         # print '[Info] handle sendblock, find new block:', payload.json_output()
         with self.server.node_manager.lock:
             blockchain = self.server.node_manager.blockchain
             block_height = db.get_block_height(blockchain.wallet.address)
             latest_block = db.get_block_data_by_index(blockchain.get_wallet_address(), block_height-1)
-            new_block = payload
 
             if (latest_block.current_hash == new_block.previous_hash) and (latest_block.index + 1 == new_block.index):
                 # TODO 新区块，校验区块
@@ -184,7 +191,6 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
                 self.add_to_candidate_blocks(blockchain, new_block)
 
             blockchain.set_consensus_chain()
-
 
 
     def handle_version(self, payload):
@@ -274,37 +280,39 @@ class Node(object):
         return (self.ip, self.port, self.node_id)
 
     def ping(self, sock, target_node_address, message):
-        sock.sendto(message, target_node_address)
+        sock.sendto(zlib.compress(message), target_node_address)
 
     def pong(self, sock, target_node_address, message):
-        sock.sendto(message, target_node_address)
+        sock.sendto(zlib.compress(message), target_node_address)
 
     def find_neighbors(self, sock, target_node_address, message):
-        sock.sendto(message, target_node_address)
+        sock.sendto(zlib.compress(message), target_node_address)
 
     def found_neighbors(self, sock, target_node_address, message):
-        sock.sendto(message, target_node_address)
+        sock.sendto(zlib.compress(message), target_node_address)
 
     def find_value(self, sock, target_node_address, message):
-        sock.sendto(message, target_node_address)
+        sock.sendto(zlib.compress(message), target_node_address)
 
     def found_value(self, sock, target_node_address, message):
-        sock.sendto(message, target_node_address)
+        sock.sendto(zlib.compress(message), target_node_address)
 
     def store(self, sock, target_node_address, message):
-        sock.sendto(message, target_node_address)
+        sock.sendto(zlib.compress(message), target_node_address)
 
     def sendtx(self, sock, target_node_address, message):
-        sock.sendto(message, target_node_address)
+        ret = sock.sendto(zlib.compress(message), target_node_address)
+        print '[sendtx], ret', ret
 
     def sendblock(self, sock, target_node_address, message):
-        sock.sendto(message, target_node_address)
+        ret = sock.sendto(zlib.compress(message), target_node_address)
+        print '[sendblock], ret', ret
 
     def sendversion(self, sock, target_node_address, message):
-        sock.sendto(message, target_node_address)
+        sock.sendto(zlib.compress(message), target_node_address)
 
     def sendverack(self, sock, target_node_address, message):
-        sock.sendto(message, target_node_address)
+        sock.sendto(zlib.compress(message), target_node_address)
 
 
 class NodeManager(object):
@@ -358,6 +366,8 @@ class NodeManager(object):
         self.minner_thread = threading.Thread(target=self.minner)
         self.minner_thread.daemon = True
         self.minner_thread.start()
+
+        # 多线程公用的变量有：self.blockchain.current_transactions, self.blockchain.chain
 
         print '[Info] start new node', self.ip, self.port, self.node_id
 
@@ -500,7 +510,7 @@ class NodeManager(object):
         port = node.port
 
         tm = int(time.time())
-        if tm - int(self.alive_nodes[node_id]) > 60:
+        if tm - int(self.alive_nodes[node_id]) > 1800:
             # 节点的更新时间超过1min，认为已下线，移除该节点
             bucket.pop(node_idx)
             self.alive_nodes.pop(node_id)
@@ -518,9 +528,11 @@ class NodeManager(object):
                     # print '[Info] try to mine...'
                     new_block = self.blockchain.do_mine()
                 # 广播区块
+                # TODO 检测包大小，太大会导致发送失败
+                print '[+++++++++++]send block', new_block.index, new_block.nonce, new_block.current_hash, new_block.previous_hash
                 self.sendblock(new_block)
             except Error as e:
-                print '[Warn] minner ', e
+                # print '[Warn] minner ', e
                 pass
 
             self.blockchain.set_consensus_chain()  # pow机制保证最长辆（nonce之和最大的链）
@@ -597,7 +609,7 @@ class NodeManager(object):
             block.from_id = self.node_id
             msg_obj = packet.Message("sendblock", block)
             msg_bytes = pickle.dumps(msg_obj)
-            # print '[Info] send block', block.current_hash
+            print '[Info] send block', node.ip, node.port, block.current_hash
             self.client.sendblock(self.server.socket, (node.ip, node.port), msg_bytes)
 
     def sendversion(self, node, version):
@@ -622,7 +634,7 @@ class NodeManager(object):
                         continue
 
                     # hearbeat
-                    self.hearbeat(node, bucket, i)
+                    # self.hearbeat(node, bucket, i)
 
                     # 发送addr消息，告诉对方节点自己所拥有的节点信息
                     # TODO

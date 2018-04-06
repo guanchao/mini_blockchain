@@ -100,7 +100,11 @@ class RPCNearestNodes(object):
             return True
 
     def get_result_nodes(self):
+        # TODO 有重复
         nodes = list()
+        tmp_node_id = list()
         for node, flag in self.list:
-            nodes.append(node)
+            if node.node_id not in tmp_node_id:
+                nodes.append(node)
+                tmp_node_id.append(node.node_id)
         return nodes
