@@ -2,13 +2,23 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="9f58f708-bf73-4dcb-ba25-9b513755feef" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Block.py" afterPath="$PROJECT_DIR$/Block.py" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/p2p/test/__init__.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/p2p/test/kad.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/p2p/test/node1.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/p2p/test/node2.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/p2p/test/node3.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/p2p/test/node4.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/p2p/test/node5.py" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MerkleTrees.py" afterPath="$PROJECT_DIR$/MerkleTrees.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/blockchain.py" afterPath="$PROJECT_DIR$/blockchain.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/db.py" afterPath="$PROJECT_DIR$/db.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/p2p/node.py" afterPath="$PROJECT_DIR$/p2p/node.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/p2p/packet.py" afterPath="$PROJECT_DIR$/p2p/packet.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/run.py" afterPath="$PROJECT_DIR$/run.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/script.py" afterPath="$PROJECT_DIR$/script.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/simulation_test.py" afterPath="$PROJECT_DIR$/simulation_test.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools.py" afterPath="$PROJECT_DIR$/tools.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/transaction.py" afterPath="$PROJECT_DIR$/transaction.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/wallet.py" afterPath="$PROJECT_DIR$/wallet.py" />
     </list>
     <ignored path="simple_blockchain.iws" />
@@ -30,70 +40,12 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="525">
-      <file leaf-file-name="node.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/p2p/node.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="128">
-              <caret line="331" column="47" selection-start-line="331" selection-start-column="35" selection-end-line="331" selection-end-column="47" />
-              <folding>
-                <element signature="e#15#29#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="blockchain.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/blockchain.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="132">
-              <caret line="21" column="27" selection-start-line="21" selection-start-column="27" selection-end-line="21" selection-end-column="27" />
-              <folding>
-                <element signature="e#15#50#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="wallet.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/wallet.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="418">
-              <caret line="20" column="46" selection-start-line="20" selection-start-column="46" selection-end-line="20" selection-end-column="46" />
-              <folding>
-                <element signature="e#15#29#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="script.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/script.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-286">
-              <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="util.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="util.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/util.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="667">
+            <state relative-caret-position="858">
               <caret line="39" column="12" selection-start-line="39" selection-start-column="4" selection-end-line="39" selection-end-column="12" />
               <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="run.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/run.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="645">
-              <caret line="394" column="20" selection-start-line="394" selection-start-column="20" selection-end-line="394" selection-end-column="20" />
-              <folding>
-                <element signature="e#15#26#0" expanded="true" />
-              </folding>
             </state>
           </provider>
         </entry>
@@ -113,9 +65,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/p2p/__init__.py" />
-        <option value="$PROJECT_DIR$/p2p/test/KadDHT.py" />
-        <option value="$PROJECT_DIR$/p2p/test/kad.py" />
         <option value="$PROJECT_DIR$/p2p/kbucket.py" />
         <option value="$PROJECT_DIR$/peer/server.py" />
         <option value="$PROJECT_DIR$/peer/client.py" />
@@ -134,12 +83,8 @@
         <option value="$PROJECT_DIR$/p2p/test/node4.py" />
         <option value="$PROJECT_DIR$/p2p/test/node5.py" />
         <option value="$PROJECT_DIR$/p2p/test/node3.py" />
-        <option value="$PROJECT_DIR$/MerkleTrees.py" />
-        <option value="$PROJECT_DIR$/p2p/packet.py" />
         <option value="$PROJECT_DIR$/p2p/kbucketset.py" />
         <option value="$PROJECT_DIR$/Blockchain.py" />
-        <option value="$PROJECT_DIR$/script.py" />
-        <option value="$PROJECT_DIR$/transaction.py" />
         <option value="$PROJECT_DIR$/p2p/nearestnodes.py" />
         <option value="$PROJECT_DIR$/2NDLgn53vjEwimT8c1ncm9cGfkma/miniblockchain.conf" />
         <option value="$PROJECT_DIR$/jRWSMkj3KEYbSzJp7gxEBRWC5cS/miniblockchain.conf" />
@@ -154,16 +99,23 @@
         <option value="$PROJECT_DIR$/4Qy8hxU1Wrp2DPeECEXfbRWeCha8/miniblockchain.conf" />
         <option value="$PROJECT_DIR$/pHdiex3LZgt8aJzXcWg5zp9qUtx/miniblockchain.conf" />
         <option value="$PROJECT_DIR$/22hfE6rT3jPjvwTuhW7AENwBN2HJ/miniblockchain.conf" />
-        <option value="$PROJECT_DIR$/db.py" />
-        <option value="$PROJECT_DIR$/simulation_test.py" />
         <option value="$PROJECT_DIR$/Block.py" />
         <option value="$PROJECT_DIR$/crypto.py" />
-        <option value="$PROJECT_DIR$/wallet.py" />
         <option value="$PROJECT_DIR$/tools.py" />
+        <option value="$PROJECT_DIR$/38nbMBjJ16D5VBgBHrzruMkKfTVv/miniblockchain.conf" />
+        <option value="$PROJECT_DIR$/MerkleTrees.py" />
+        <option value="$PROJECT_DIR$/db.py" />
         <option value="$PROJECT_DIR$/blockchain.py" />
+        <option value="$PROJECT_DIR$/G5AjrxbwSyfsBxNdM1XKG1Dra9D/miniblockchain.conf" />
+        <option value="$PROJECT_DIR$/simulation_test.py" />
+        <option value="$PROJECT_DIR$/transaction.py" />
+        <option value="$PROJECT_DIR$/wallet.py" />
+        <option value="$PROJECT_DIR$/p2p/packet.py" />
         <option value="$PROJECT_DIR$/p2p/node.py" />
+        <option value="$PROJECT_DIR$/script.py" />
         <option value="$PROJECT_DIR$/run.py" />
         <option value="$PROJECT_DIR$/23DvZ2MzRoGhQk4vSUDcVsvJDEVb/miniblockchain.conf" />
+        <option value="$PROJECT_DIR$/BS8Vyig4AAbtmGAnBQMsUucH71i/miniblockchain.conf" />
       </list>
     </option>
   </component>
@@ -239,6 +191,20 @@
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
             </PATH_ELEMENT>
           </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="mini_blockchain" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="mini_blockchain" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="p2p" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
         </subPane>
       </pane>
       <pane id="Scratches" />
@@ -259,7 +225,7 @@
       <recent name="C:\Users\guanchao\Desktop\simple_blockchain\p2p" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.run">
+  <component name="RunManager" selected="Python.simulation_test">
     <configuration default="false" name="db" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -488,11 +454,11 @@
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.run" />
+        <item index="0" class="java.lang.String" itemvalue="Python.simulation_test" />
         <item index="1" class="java.lang.String" itemvalue="Python.tools" />
-        <item index="2" class="java.lang.String" itemvalue="Python.crypto" />
-        <item index="3" class="java.lang.String" itemvalue="Python.db" />
-        <item index="4" class="java.lang.String" itemvalue="Python.simulation_test" />
+        <item index="2" class="java.lang.String" itemvalue="Python.run" />
+        <item index="3" class="java.lang.String" itemvalue="Python.crypto" />
+        <item index="4" class="java.lang.String" itemvalue="Python.db" />
       </list>
     </recent_temporary>
   </component>
@@ -575,118 +541,6 @@
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/3WL6xFPfnuqdsW6kxohJ8Rs6ZamD/miniblockchain.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/49pLUXiGufLhXexJXmF3dQW2zy8m/miniblockchain.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/2VwaGyUgvPGWChrrw33kNgRSmthB/miniblockchain.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/4APdsWjo2npFbrcs14XhXzLtKSA3/miniblockchain.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/4WJQBr4sbKUhs2L2H89DQd3uiu7Y/miniblockchain.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/transaction.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="603">
-          <caret line="113" column="44" selection-start-line="113" selection-start-column="44" selection-end-line="113" selection-end-column="44" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/p2p/kbucketset.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="230">
-          <caret line="107" column="40" selection-start-line="107" selection-start-column="40" selection-end-line="107" selection-end-column="40" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/2NDLgn53vjEwimT8c1ncm9cGfkma/miniblockchain.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/jRWSMkj3KEYbSzJp7gxEBRWC5cS/miniblockchain.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="44">
-          <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/jRWSMkj3KEYbSzJp7gxEBRWC5cS/miniblockchain.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="44">
-          <caret line="2" column="0" selection-start-line="2" selection-start-column="0" selection-end-line="2" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/3jCBzkN3KHhiMRKWrJrPxxmGPw28/miniblockchain.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/2NDLgn53vjEwimT8c1ncm9cGfkma/miniblockchain.conf">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="66">
-          <caret line="3" column="7" selection-start-line="3" selection-start-column="7" selection-end-line="3" selection-end-column="7" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/p2p/packet.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="242">
-          <caret line="24" column="0" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/p2p/nearestnodes.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="582">
-          <caret line="110" column="0" selection-start-line="102" selection-start-column="18" selection-end-line="110" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/p2p/test/server.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="242">
@@ -855,34 +709,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/db.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="154">
-          <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
-          <folding>
-            <element signature="e#16#35#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/Block.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="755">
-          <caret line="39" column="42" selection-start-line="39" selection-start-column="42" selection-end-line="39" selection-end-column="42" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/simulation_test.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2244">
-          <caret line="102" column="21" selection-start-line="102" selection-start-column="19" selection-end-line="102" selection-end-column="21" />
-          <folding>
-            <element signature="e#15#26#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/crypto.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="352">
@@ -915,32 +741,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/script.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-286">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/wallet.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="418">
-          <caret line="20" column="46" selection-start-line="20" selection-start-column="46" selection-end-line="20" selection-end-column="46" />
-          <folding>
-            <element signature="e#15#29#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/util.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="667">
-          <caret line="39" column="12" selection-start-line="39" selection-start-column="4" selection-end-line="39" selection-end-column="12" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/init_public.pem">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="0">
@@ -949,49 +749,223 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/blockchain.py">
+    <entry file="file://$PROJECT_DIR$/Block.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="132">
-          <caret line="21" column="27" selection-start-line="21" selection-start-column="27" selection-end-line="21" selection-end-column="27" />
-          <folding>
-            <element signature="e#15#50#0" expanded="true" />
-          </folding>
+        <state relative-caret-position="440">
+          <caret line="20" column="12" selection-start-line="20" selection-start-column="12" selection-end-line="20" selection-end-column="12" />
+          <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/p2p/node.py">
+    <entry file="file://$PROJECT_DIR$/MerkleTrees.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="128">
-          <caret line="331" column="47" selection-start-line="331" selection-start-column="35" selection-end-line="331" selection-end-column="47" />
+        <state relative-caret-position="579">
+          <caret line="66" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="66" selection-end-column="0" />
           <folding>
             <element signature="e#15#29#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/23DvZ2MzRoGhQk4vSUDcVsvJDEVb/miniblockchain.conf">
+    <entry file="file://$PROJECT_DIR$/db.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="132">
-          <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
+          <caret line="6" column="21" selection-start-line="6" selection-start-column="21" selection-end-line="6" selection-end-column="21" />
+          <folding>
+            <element signature="e#16#35#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/38nbMBjJ16D5VBgBHrzruMkKfTVv/miniblockchain.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/G5AjrxbwSyfsBxNdM1XKG1Dra9D/miniblockchain.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="440">
+          <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/blockchain.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="183">
+          <caret line="555" column="25" selection-start-line="555" selection-start-column="25" selection-end-line="555" selection-end-column="25" />
+          <folding>
+            <element signature="e#15#50#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-411">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/tools.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="154">
-          <caret line="7" column="29" selection-start-line="7" selection-start-column="15" selection-end-line="7" selection-end-column="29" />
+        <state relative-caret-position="308">
+          <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/transaction.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-389">
+          <caret line="100" column="28" selection-start-line="0" selection-start-column="0" selection-end-line="144" selection-end-column="0" />
+          <folding>
+            <element signature="e#16#30#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/p2p/packet.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-1665">
+          <caret line="3" column="0" selection-start-line="3" selection-start-column="0" selection-end-line="3" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/wallet.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-653">
+          <caret line="48" column="25" selection-start-line="48" selection-start-column="25" selection-end-line="48" selection-end-column="25" />
+          <folding>
+            <element signature="e#15#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/p2p/node.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="213">
+          <caret line="331" column="19" selection-start-line="331" selection-start-column="19" selection-end-line="331" selection-end-column="19" />
+          <folding>
+            <element signature="e#15#29#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/p2p/nearestnodes.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="22">
+          <caret line="1" column="0" selection-start-line="1" selection-start-column="0" selection-end-line="1" selection-end-column="0" />
+          <folding>
+            <element signature="e#16#32#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/p2p/test/node1.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/p2p/test/node2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/p2p/test/node3.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/p2p/test/node5.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/p2p/test/node4.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/script.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="469">
+          <caret line="166" column="0" selection-start-line="166" selection-start-column="0" selection-end-line="166" selection-end-column="0" />
+          <folding>
+            <element signature="e#55#69#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/simulation_test.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="176">
+          <caret line="104" column="0" selection-start-line="104" selection-start-column="0" selection-end-line="104" selection-end-column="0" />
+          <folding>
+            <element signature="e#15#26#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/run.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="645">
-          <caret line="394" column="20" selection-start-line="394" selection-start-column="20" selection-end-line="394" selection-end-column="20" />
+        <state relative-caret-position="315">
+          <caret line="309" column="0" selection-start-line="309" selection-start-column="0" selection-end-line="309" selection-end-column="0" />
           <folding>
             <element signature="e#15#26#0" expanded="true" />
           </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/23DvZ2MzRoGhQk4vSUDcVsvJDEVb/miniblockchain.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="440">
+          <caret line="20" column="0" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/35zvK76mJLuW3eqjyqGRak5uNx5Z/miniblockchain.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/BS8Vyig4AAbtmGAnBQMsUucH71i/miniblockchain.conf">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/util.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="858">
+          <caret line="39" column="12" selection-start-line="39" selection-start-column="4" selection-end-line="39" selection-end-column="12" />
+          <folding />
         </state>
       </provider>
     </entry>

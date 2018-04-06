@@ -61,9 +61,8 @@ class TxInput(object):
         """
 
         :param prev_txid: 指向之前的交易id
-        :param out_idx: 存储上一笔交易中所有输出的索引（一个交易包含多个输出，需指明是哪一个）
-        :param script_sig: script_sig是一个脚本，提供了可解锁输出结构里面ScriptPubKey字段的数据（相当于答案，对上一笔输出的回答）。如果ScriptSig提供的数据正确，
-                            那么输出就会被解锁，然后被解锁的值就可以被用于产生新的输出；如果数据不正确，输出就无法被引用在输入中
+        :param out_idx: 存储上一笔交易中所引用输出的索引
+        :param script_sig: script_sig是一个脚本，提供了可解锁输出结构里面ScriptPubKey字段的数据（实际就是确认这个输出中公钥对应的私钥持有者是否本人）。
         """
         self.prev_txid = prev_txid
         self.prev_tx_out_idx = out_idx
@@ -99,7 +98,7 @@ class TxOutput(object):
     def __init__(self, value, pubkey_hash):
         """
 
-        :param value: 一定量的比特币
+        :param value: 一定量的货币
         :param pubkey_hash: <str>，锁定脚本，要使用这个输出，必须要解锁该脚本。pubkey_hash=sha256(ripemd160(pubkey))
         """
         self.value = value

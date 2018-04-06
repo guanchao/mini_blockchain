@@ -46,7 +46,7 @@ class Wallet(object):
     def b58encode(b):
         """
         将bytes转换成base58字符串
-        :param b: byte数组
+        :param b: <byte数组>
         :return:
         """
         b58_digits = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
@@ -75,8 +75,8 @@ class Wallet(object):
     def b58decode(s):
         """
         将base58编码的字符串转换成bytes数组
-        :param s: base58编码后的字符串
-        :return: byte数组
+        :param s: <str> base58编码后的字符串
+        :return: <byte数组>
         """
         b58_digits = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
         if not s:

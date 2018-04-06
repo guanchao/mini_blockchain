@@ -11,4 +11,4 @@ def create_genisus_keypair():
     with open('genisus_private.pem', 'w+') as f:
         f.write(privkey.save_pkcs1().decode())
 
-create_genisus_keypair()
+# create_genisus_keypair()

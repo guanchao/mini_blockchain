@@ -35,7 +35,6 @@ def write_unconfirmed_tx_to_db(wallet_address, tx):
         cf.set('meta', 'unconfirmed_tx_counts', unconfirmed_tx_counts)
 
     try:
-        # 已存在，不增加高度
         cf.get('unconfirmed_tx_index', str(unconfirmed_tx_counts))
     except ConfigParser.NoSectionError as e:
         cf.add_section('unconfirmed_tx_index')
@@ -48,7 +47,6 @@ def write_unconfirmed_tx_to_db(wallet_address, tx):
     with open(wallet_address + '/miniblockchain.conf', 'w+') as f:
         cf.write(f)
 
-    # 将整个block写入一个文件中
     with open(wallet_address + '/unconfirmed_tx/' + tx.txid, 'wb') as f:
         pickle.dump(tx, f)
 
@@ -107,7 +105,6 @@ def clear_unconfirmed_tx_from_disk(wallet_address):
 def write_to_db(wallet_address, block):
     if not os.path.isdir(wallet_address):
         os.mkdir(wallet_address)
-    # 写入到blockheader.db中
     cf = ConfigParser.ConfigParser()
     cf.read(wallet_address + '/miniblockchain.conf')
 
@@ -119,12 +116,10 @@ def write_to_db(wallet_address, block):
         cf.set('meta', 'block_height', block_height)
 
     try:
-        # 已存在，不增加高度
         cf.get('index', str(block.index))
     except ConfigParser.NoSectionError as e:
         cf.add_section('index')
     except ConfigParser.NoOptionError as e:
-        # 第一次存储，增加高度
         cf.set('meta', 'block_height', 1 + int(block_height))
 
     cf.set('index', str(block.index), str(block.current_hash))
@@ -132,7 +127,6 @@ def write_to_db(wallet_address, block):
     with open(wallet_address + '/miniblockchain.conf', 'w+') as f:
         cf.write(f)
 
-    # 将整个block写入一个文件中
     with open(wallet_address + '/' + block.current_hash, 'wb') as f:
         pickle.dump(block, f)
 

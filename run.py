@@ -18,86 +18,56 @@ except ImportError:
 简化的区块链
 
 功能：
-1.可以进行挖矿
-2.可以进行交易
-3.可以进行简单工作量证明
-4.可以进行简单共识
-
-
-TODO:
-1.POW机制扩展
-2.共识扩展
-3.p2p网络发现
+1.实现P2P(DHT)网络
+2.可以进行挖矿
+3.可以进行交易
+4.可以进行共识
 
 """
 
 app = Flask(__name__)
 
-@app.route('/candidates', methods=['GET'])
-def candidates():
-    output = json.dumps(blockchain.candidate_blocks, default=lambda obj: obj.__dict__, indent=4)
-    return output, 200
+
+# @app.route('/candidates', methods=['GET'])
+# def candidates():
+#     output = json.dumps(blockchain.candidate_blocks, default=lambda obj: obj.__dict__, indent=4)
+#     return output, 200
 
 
-@app.route('/ping', methods=['POST'])
-def ping():
-    values = request.get_json()
-    required = ['node_id', 'ip', 'port']
-    if not all(k in values for k in required):
-        return 'Missing values', 400
-
-    node_id = values['node_id']
-    ip = values['ip']
-    port = values['port']
-
-    node_manager.ping(node_manager.server.socket, long(node_id), (str(ip), int(port)))
-    return 'ok', 200
-
-
-@app.route('/all_nodes', methods=['GET'])
-def get_all_nodes():
-    all_nodes = node_manager.buckets.get_all_nodes()
-    output = json.dumps(all_nodes, default=lambda obj: obj.__dict__, indent=4)
-    return output, 200
+# @app.route('/ping', methods=['POST'])
+# def ping():
+#     values = request.get_json()
+#     required = ['node_id', 'ip', 'port']
+#     if not all(k in values for k in required):
+#         return 'Missing values', 400
+#
+#     node_id = values['node_id']
+#     ip = values['ip']
+#     port = values['port']
+#
+#     node_manager.ping(node_manager.server.socket, long(node_id), (str(ip), int(port)))
+#     return 'ok', 200
 
 
-@app.route('/all_data', methods=['GET'])
-def get_all_data():
-    datas = node_manager.data
-    output = json.dumps(datas, default=lambda obj: obj.__dict__, indent=4)
-    return output, 200
+# @app.route('/all_nodes', methods=['GET'])
+# def get_all_nodes():
+#     all_nodes = node_manager.buckets.get_all_nodes()
+#     output = json.dumps(all_nodes, default=lambda obj: obj.__dict__, indent=4)
+#     return output, 200
 
 
-@app.route('/unconfirmed_tx', methods=['GET'])
-def get_unconfirmed_tx():
-    datas = [tx.json_output() for tx in blockchain.current_transactions]
-    output = json.dumps(datas, default=lambda obj: obj.__dict__, indent=4)
-    return output, 200
+# @app.route('/all_data', methods=['GET'])
+# def get_all_data():
+#     datas = node_manager.data
+#     output = json.dumps(datas, default=lambda obj: obj.__dict__, indent=4)
+#     return output, 200
 
 
-@app.route('/set_data', methods=['POST'])
-def set_data():
-    values = request.get_json()
-    required = ['key', 'value']
-    if not all(k in values for k in required):
-        return 'Missing values', 400
-    key = values['key']
-    value = values['value']
-    node_manager.set_data(key, value)
-
-    datas = node_manager.data
-    output = json.dumps(datas, default=lambda obj: obj.__dict__, indent=4)
-    return output, 200
-
-
-@app.route('/get_data', methods=['GET'])
-def get_data():
-    key = request.args.get('key')
-    try:
-        value = node_manager.get_data(key)
-        return value, 200
-    except KeyError as e:
-        return 'not found!', 200
+# @app.route('/unconfirmed_tx', methods=['GET'])
+# def get_unconfirmed_tx():
+#     datas = [tx.json_output() for tx in blockchain.current_transactions]
+#     output = json.dumps(datas, default=lambda obj: obj.__dict__, indent=4)
+#     return output, 200
 
 
 @app.route('/bootstrap', methods=['POST'])
@@ -131,49 +101,15 @@ def curr_node():
     return output, 200
 
 
-#
-# @app.route('/mine', methods=['GET'])
-# def mine():
-#     try:
-#         block = blockchain.do_mine()
-#     except Error, Argument:
-#         response = {'message': Argument.message}
-#         return jsonify(response), 200
-#
+
+# @app.route('/chain', methods=['GET'])
+# def full_chain():
 #     output = {
-#         'message': 'Contrigulations, Find new block!',
-#         'index': block.index,
-#         'transactions': [tx.json_output() for tx in block.transactions],
-#         'merkleroot': block.merkleroot,
-#         'nonce': block.nonce,
-#         'previous_hash': block.previous_hash
+#         'length': db.get_block_height(blockchain.wallet.address),
+#         'chain': blockchain.json_output(),
 #     }
 #     json_output = json.dumps(output, indent=4)
 #     return json_output, 200
-
-
-@app.route('/chain', methods=['GET'])
-def full_chain():
-    output = {
-        'length': db.get_block_height(blockchain.wallet.address),
-        'chain': blockchain.json_output(),
-    }
-    json_output = json.dumps(output, indent=4)
-    return json_output, 200
-
-
-@app.route('/candidate_blocks', methods=['GET'])
-def candidate_blocks():
-    # output = {
-    #     'length': len(blockchain.candidate_blocks),
-    #     'candidate_blocks': [block.json_output() for block in blockchain.candidate_blocks],
-    # }
-    for block_index in blockchain.candidate_blocks.keys():
-        for candidate_block in blockchain.candidate_blocks[block_index]:
-            print block_index, candidate_block.current_hash, candidate_block.nonce
-    # json_output = json.dumps(output, indent=4)
-    # return json_output, 200
-    return 'ok', 200
 
 
 @app.route('/transactions/new', methods=['POST'])
@@ -189,37 +125,20 @@ def new_transaction():
     if new_tx:
         # 广播交易
         node_manager.sendtx(new_tx)
-        print '[++++++++++++] sendtx', new_tx.txid
         output = {
             'message': 'new transaction been created successfully!',
             'current_transactions': [tx.json_output() for tx in blockchain.current_transactions]
         }
         json_output = json.dumps(output, indent=4)
         return json_output, 200
-    # try:
-    #         block = blockchain.do_mine()
-    #     except Error, Argument:
-    #         response = {'message': Argument.message}
-    #         return jsonify(response), 200
-    #
-    #     output = {
-    #         'message': 'Success! Transaction was added to Block' + str(index),
-    #         'index': block.index,
-    #         'transactions': [tx.json_output() for tx in block.transactions],
-    #         'merkleroot': block.merkleroot,
-    #         'nonce': block.nonce,
-    #         'previous_hash': block.previous_hash
-    #     }
-    #     json_output = json.dumps(output, indent=4)
-    #     return json_output, 200
-    #
+
     else:
         response = {'message': "Not enough funds!"}
         return jsonify(response), 200
 
 
 @app.route('/balance', methods=['GET'])
-def get_balance(): # TODO
+def get_balance():
     address = request.args.get('address')
     response = {
         'address': address,
@@ -238,7 +157,7 @@ def node_info():
     ip = values['ip']
     port = values['port']
     block_height = db.get_block_height(blockchain.wallet.address)
-    latest_block = db.get_block_data_by_index(blockchain.wallet.address, block_height-1)
+    latest_block = db.get_block_data_by_index(blockchain.wallet.address, block_height - 1)
     block_hash = latest_block.current_hash
     timestamp = latest_block.timestamp
 
@@ -388,9 +307,6 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
     args = parser.parse_args()
     port = args.port
-
-    if os.path.exists('23DvZ2MzRoGhQk4vSUDcVsvJDEVb'):
-        shutil.rmtree('23DvZ2MzRoGhQk4vSUDcVsvJDEVb')  # 清除创世节点下的历史数据
 
     if port == 5000:
         genisus_node = True

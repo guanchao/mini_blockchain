@@ -1,11 +1,10 @@
 # coding=utf-8
 import json
 
-class Message(object):
 
+class Message(object):
     def __init__(self, command, payload):
         """
-
         :param command: <str> 命令
         :param payload: <byte[]> 每个command对应的payload不一样
         """
@@ -14,7 +13,6 @@ class Message(object):
 
 
 class Version(object):
-
     def __init__(self, version, timestamp, from_id, to_id, best_height):
         self.version = version
         self.timestamp = timestamp
@@ -24,13 +22,13 @@ class Version(object):
 
 
 class Verack(object):
-
     def __init__(self, version, timestamp, from_id, to_id, best_height):
         self.version = version
         self.timestamp = timestamp
         self.from_id = from_id
         self.to_id = to_id
         self.best_height = best_height
+
 
 class Ping(object):
     def __init__(self, from_id, to_id):
@@ -105,4 +103,3 @@ class Store(object):
 
     def __str__(self):
         return json.dumps(self.__dict__)
-

@@ -63,14 +63,11 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
         elif command == "verack":
             self.handle_verack(payload)
 
-        client_node_id = payload.from_id
-
-        if self.server.node_manager.buckets.exist(client_node_id):
-            self.server.node_manager.alive_nodes[client_node_id] = int(time.time())  # 更新节点联系时间
-            # print '[Info] All nodes:', self.server.node_manager.buckets.get_all_nodes()
+            # client_node_id = payload.from_id
+            # if self.server.node_manager.buckets.exist(client_node_id):
+            #     self.server.node_manager.alive_nodes[client_node_id] = int(time.time())  # 更新节点联系时间
 
     def handle_ping(self, payload):
-        # print '[Info] handle ping', payload
         socket = self.request[1]
         client_ip, client_port = self.client_address
         client_node_id = payload.from_id
@@ -78,12 +75,9 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
         self.server.node_manager.pong(socket, client_node_id, (client_ip, client_port))
 
     def handle_pong(self, payload):
-        # print '[Info] handle ping response', payload
         pass
 
     def handle_find_neighbors(self, payload):
-        # print '[Info] handle find node'
-
         socket = self.request[1]
         client_ip, client_port = self.client_address
         client_node_id = payload.from_id
@@ -98,7 +92,6 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
                                                  (client_ip, client_port))
 
     def handle_found_neighbors(self, payload):
-        # print '[Info] handle find neighbors'
         rpc_id = payload.rpc_id
         rpc_nearest_nodes = self.server.node_manager.rpc_ids[rpc_id]
         del self.server.node_manager.rpc_ids[rpc_id]
@@ -106,7 +99,6 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
         rpc_nearest_nodes.update(nearest_nodes)
 
     def handle_find_value(self, payload):
-        # print '[Info] handle find value'
         socket = self.request[1]
         client_ip, client_port = self.client_address
         client_node_id = payload.from_id
@@ -125,7 +117,6 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
                                                      (client_ip, client_port))
 
     def handle_found_value(self, payload):
-        # print '[Info] handle found value'
         rpc_id = payload.rpc_id
         value = payload.value
         rpc_nearest_nodes = self.server.node_manager.rpc_ids[rpc_id]
@@ -133,48 +124,35 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
         rpc_nearest_nodes.set_target_value(value)
 
     def handle_store(self, payload):
-        # print '[Info] handle store'
         key = payload.key
         value = payload.value
         self.server.node_manager.data[str(key)] = value
-        # print '[Info] ', self.server.node_manager.client, self.server.node_manager.data
 
     def handle_sendtx(self, payload):
-        # print '[Info] handle sendtx, find new tx:', payload.json_output()
         new_tx = payload
-        print '[------------] got tx', new_tx.txid
         with self.server.node_manager.lock:
             blockchain = self.server.node_manager.blockchain
 
             # 判断区块中是否存在
             if blockchain.find_transaction(new_tx.txid):
-                # print '[Info] txid:', new_tx.txid, 'is already in block, duplicated, ignore ti!'
                 return
             # 判断交易池中是否存在
             for k in range(len(blockchain.current_transactions)):
                 uncomfirmed_tx = blockchain.current_transactions[-1 - k]
                 if uncomfirmed_tx.txid == new_tx.txid:
-                    # print '[Info] txid:', new_tx.txid, 'is already in tx pool, duplicated, ignore ti!'
                     return
 
             blockchain.current_transactions.append(new_tx)
             db.write_unconfirmed_tx_to_db(blockchain.wallet.address, new_tx)
 
     def handle_sendblock(self, payload):
-        # TODO 增加区块池机制（保存临时区块）
         new_block = payload
-        print 'Handle sendblock from ', self.client_address
-        print '[-----------]got block', new_block.index, new_block.nonce, new_block.current_hash, new_block.previous_hash
-
-        # print '[Info] handle sendblock, find new block:', payload.json_output()
         with self.server.node_manager.lock:
             blockchain = self.server.node_manager.blockchain
             block_height = db.get_block_height(blockchain.wallet.address)
-            latest_block = db.get_block_data_by_index(blockchain.get_wallet_address(), block_height-1)
+            latest_block = db.get_block_data_by_index(blockchain.get_wallet_address(), block_height - 1)
 
             if (latest_block.current_hash == new_block.previous_hash) and (latest_block.index + 1 == new_block.index):
-                # TODO 新区块，校验区块
-                # 验证哈希
 
                 # 校验交易是否有效
                 is_valid = True
@@ -194,7 +172,6 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
 
             blockchain.set_consensus_chain()
 
-
     def handle_version(self, payload):
         version = payload.version
         if version != 1:
@@ -208,7 +185,6 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
             new_node.version = 1
             self.server.node_manager.buckets.insert(new_node)
             blockchain = self.server.node_manager.blockchain
-            print '[Info][handle_version] Add new node', client_node_id
 
             block_counts = db.get_block_height(blockchain.get_wallet_address())
             verack = Verack(1, int(time.time()), self.server.node_manager.node_id, client_node_id,
@@ -232,7 +208,6 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
             new_node.version = 1
             self.server.node_manager.buckets.insert(new_node)
             blockchain = self.server.node_manager.blockchain
-            print '[Info][handle_verack] Add new node', client_node_id
 
             if payload.best_height > db.get_block_height(blockchain.get_wallet_address()):
                 # TODO 检查best_height，同步区块链
@@ -304,11 +279,9 @@ class Node(object):
 
     def sendtx(self, sock, target_node_address, message):
         ret = sock.sendto(zlib.compress(message), target_node_address)
-        print '[sendtx], ret', ret
 
     def sendblock(self, sock, target_node_address, message):
         ret = sock.sendto(zlib.compress(message), target_node_address)
-        print '[sendblock], ret', ret
 
     def sendversion(self, sock, target_node_address, message):
         sock.sendto(zlib.compress(message), target_node_address)
@@ -356,17 +329,15 @@ class NodeManager(object):
         self.processmessages_thread.daemon = True
         self.processmessages_thread.start()
 
-        # 消息发送
-        self.sendmessages_thread = threading.Thread(target=self.sendmessages)
-        self.sendmessages_thread.daemon = True
-        self.sendmessages_thread.start()
+        # 消息发送 TODO
+        # self.sendmessages_thread = threading.Thread(target=self.sendmessages)
+        # self.sendmessages_thread.daemon = True
+        # self.sendmessages_thread.start()
 
         # 矿工线程
         self.minner_thread = threading.Thread(target=self.minner)
         self.minner_thread.daemon = True
         self.minner_thread.start()
-
-        # 多线程公用的变量有：self.blockchain.current_transactions, self.blockchain.chain
 
         print '[Info] start new node', self.ip, self.port, self.node_id
 
@@ -374,7 +345,6 @@ class NodeManager(object):
         payload = packet.Ping(self.node_id, server_node_id)
         msg_obj = packet.Message("ping", payload)
         msg_bytes = pickle.dumps(msg_obj)
-        # print '[Info] send ping'
         self.client.ping(sock, target_node_address, msg_bytes)
 
     def pong(self, sock, server_node_id, target_node_address):
@@ -387,42 +357,36 @@ class NodeManager(object):
         payload = packet.Pong(self.node_id, server_node_id)
         msg_obj = packet.Message("pong", payload)
         msg_bytes = pickle.dumps(msg_obj)
-        # print '[Info] send pong'
         self.client.pong(sock, target_node_address, msg_bytes)
 
     def find_neighbors(self, node_id, rpc_id, sock, server_node_id, server_node_address):
         payload = packet.FindNeighbors(node_id, self.node_id, server_node_id, rpc_id)
         msg_obj = packet.Message("find_neighbors", payload)
         msg_bytes = pickle.dumps(msg_obj)
-        # print '[Info] send find node'
         self.client.find_neighbors(sock, server_node_address, msg_bytes)
 
     def found_neighbors(self, node_id, rpc_id, neighbors, sock, server_node_id, server_node_address):
         payload = packet.FoundNeighbors(node_id, self.node_id, server_node_id, rpc_id, neighbors)
         msg_obj = packet.Message("found_neighbors", payload)
         msg_bytes = pickle.dumps(msg_obj)
-        # print '[Info] send find neighbors'
         self.client.found_neighbors(sock, server_node_address, msg_bytes)
 
     def find_value(self, key, rpc_id, sock, server_node_id, target_node_address):
         payload = packet.FindValue(key, self.node_id, server_node_id, rpc_id)
         msg_obj = packet.Message("find_value", payload)
         msg_bytes = pickle.dumps(msg_obj)
-        # print '[Info] send find value'
         self.client.find_value(sock, target_node_address, msg_bytes)
 
     def found_value(self, key, value, rpc_id, sock, server_node_id, target_node_address):
         payload = packet.FoundValue(key, value, self.node_id, server_node_id, rpc_id)
         msg_obj = packet.Message("found_value", payload)
         msg_bytes = pickle.dumps(msg_obj)
-        # print '[Info] send found value'
         self.client.found_value(sock, target_node_address, msg_bytes)
 
     def store(self, key, value, sock, server_node_id, target_node_address):
         payload = packet.Store(key, value, self.node_id, server_node_id)
         msg_obj = packet.Message("store", payload)
         msg_bytes = pickle.dumps(msg_obj)
-        # print '[Info] send store'
         self.client.store(sock, target_node_address, msg_bytes)
 
     def iterative_find_nodes(self, key, seed_node=None):
@@ -432,7 +396,6 @@ class NodeManager(object):
         :param seed_nodes:
         :return:
         """
-        # print '[Info] iterative find nodes:', key, seed_node
         rpc_nearest_nodes = RPCNearestNodes(key)
         rpc_nearest_nodes.update(self.buckets.nearest_nodes(key))
         if seed_node:
@@ -456,7 +419,6 @@ class NodeManager(object):
         return rpc_nearest_nodes.get_result_nodes()
 
     def iterative_find_value(self, key):
-        # print '[Info] iterative find value:', key
         rpc_nearest_nodes = RPCNearestNodes(key)
         rpc_nearest_nodes.update(self.buckets.nearest_nodes(key))
         while not rpc_nearest_nodes.is_complete():
@@ -478,11 +440,11 @@ class NodeManager(object):
         :param seed_nodes:<Node list> 种子节点列表
         :return:
         """
-        # print '[Info] bootstrap', seed_nodes
         for seed_node in seed_nodes:
             # 握手
             self.sendversion(seed_node,
-                             Version(1, int(time.time()), self.node_id, seed_node.node_id, db.get_block_height(self.blockchain.get_wallet_address())))
+                             Version(1, int(time.time()), self.node_id, seed_node.node_id,
+                                     db.get_block_height(self.blockchain.get_wallet_address())))
 
         for seed_node in seed_nodes:
             self.iterative_find_nodes(self.client.node_id, seed_node)
@@ -524,14 +486,11 @@ class NodeManager(object):
 
             try:
                 with self.lock:
-                    # print '[Info] try to mine...'
                     new_block = self.blockchain.do_mine()
                 # 广播区块
                 # TODO 检测包大小，太大会导致发送失败
-                print '[+++++++++++]send block', new_block.index, new_block.nonce, new_block.current_hash, new_block.previous_hash
                 self.sendblock(new_block)
             except Error as e:
-                # print '[Warn] minner ', e
                 pass
 
             self.blockchain.set_consensus_chain()  # pow机制保证最长辆（nonce之和最大的链）
@@ -549,7 +508,6 @@ class NodeManager(object):
         """
         data_key = self.__hash_function(key)
         k_nearest_ndoes = self.iterative_find_nodes(data_key)
-        # print '[info] set data, k nearest nodes:', k_nearest_ndoes
         if not k_nearest_ndoes:
             self.data[str(data_key)] = value
         for node in k_nearest_ndoes:
@@ -583,14 +541,12 @@ class NodeManager(object):
         """
         data_key = self.__hash_function(tx.txid)
         k_nearest_ndoes = self.iterative_find_nodes(data_key)
-        # print '[info] set data, k nearest nodes:', k_nearest_ndoes
         if not k_nearest_ndoes:
             self.data[data_key] = tx
         for node in k_nearest_ndoes:
             tx.from_id = self.node_id
             msg_obj = packet.Message("sendtx", tx)
             msg_bytes = pickle.dumps(msg_obj)
-            # print '[Info] send tx', tx.txid
             self.client.sendtx(self.server.socket, (node.ip, node.port), msg_bytes)
 
     def sendblock(self, block):
@@ -601,7 +557,6 @@ class NodeManager(object):
         """
         data_key = self.__hash_function(block.current_hash)
         k_nearest_ndoes = self.iterative_find_nodes(data_key)
-        # print '[info] set data, k nearest nodes:', k_nearest_ndoes
         if not k_nearest_ndoes:
             self.data[data_key] = block
         for node in k_nearest_ndoes:
@@ -614,37 +569,35 @@ class NodeManager(object):
     def sendversion(self, node, version):
         msg_obj = packet.Message("version", version)
         msg_bytes = pickle.dumps(msg_obj)
-        # print '[Info] send version to', node.node_id
         self.client.sendversion(self.server.socket, (node.ip, node.port), msg_bytes)
 
     def sendverck(self, node, verack):
         msg_obj = packet.Message("verack", verack)
         msg_bytes = pickle.dumps(msg_obj)
-        # print '[Info] send verck to', node.node_id
         self.client.sendverack(self.server.socket, (node.ip, node.port), msg_bytes)
 
-    def sendmessages(self):
-        while True:
-            for bucket in self.buckets.buckets:
-                for i in range(len(bucket)):
-                    node = bucket[i]
-                    # 要先完成握手才可以进行其他操作
-                    if node.version == None:
-                        continue
-
-                    # hearbeat
-                    # self.hearbeat(node, bucket, i)
-
-                    # 发送addr消息，告诉对方节点自己所拥有的节点信息
-                    # TODO
-
-                    # 发送getaddr消息，获取尽量多的节点
-                    # TODO
-
-                    # 发送inv消息，请求一个区块哈希的列表
-                    # TODO
-
-                    # 发送getdata消息，用于请求某个块或交易的完整信息
-                    # TODO
-
-            time.sleep(10)
+    # def sendmessages(self):
+    #     while True:
+    #         for bucket in self.buckets.buckets:
+    #             for i in range(len(bucket)):
+    #                 node = bucket[i]
+    #                 # 要先完成握手才可以进行其他操作
+    #                 if node.version == None:
+    #                     continue
+    #
+    #                     # hearbeat
+    #                     # self.hearbeat(node, bucket, i)
+    #
+    #                     # 发送addr消息，告诉对方节点自己所拥有的节点信息
+    #                     # TODO
+    #
+    #                     # 发送getaddr消息，获取尽量多的节点
+    #                     # TODO
+    #
+    #                     # 发送inv消息，请求一个区块哈希的列表
+    #                     # TODO
+    #
+    #                     # 发送getdata消息，用于请求某个块或交易的完整信息
+    #                     # TODO
+    #
+    #         time.sleep(10)

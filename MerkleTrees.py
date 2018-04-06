@@ -39,8 +39,6 @@ class MerkleTrees(object):
                 transaction_tree[left_leaf] = left_leaf_hash
                 transaction_tree[right_leaf] = right_leaf_hash
 
-                # parent_hash = hashlib.sha256(left_leaf_hash + right_leaf_hash).hexdigest()
-                # temp_transaction.append(parent_hash)
                 temp_transaction.append(left_leaf_hash + right_leaf_hash)
 
             self.transaction_list = temp_transaction
@@ -66,45 +64,3 @@ class MerkleTrees(object):
     def get_root_leaf(self):
         last_key = self.transaction_tree.keys()[-1]
         return self.transaction_tree[last_key]
-
-    # def find_unspent_transactions(self, address):
-    #     for transaction in self.get_transaction_list():
-    #         print transaction
-
-    # def find_spendalbe_outputs(self, from_addr, amount):
-    #     for block in self.chain:
-    #         print block
-
-#
-# if __name__ == "__main__":
-#     transactions = []
-#     input = TxInput(None, -1, "Reward to 123456", None)
-#     output = TxOutput(10, "123456")
-#
-#     tx = Transaction([input], [output], time())
-#     transactions.append(tx)
-# #
-# #     tree = MerkleTrees(transactions)
-# #     transaction_tree = tree.get_transaction_tree()
-# #     print 'Root of the tree:', tree.get_root_leaf()
-# #     print(json.dumps(transaction_tree, indent=4))
-# # #
-#     print '----------------------------------------------'
-#     tx2 = Transaction([TxInput(None, -1, "Reward to 654321", None)], [TxOutput(20, "654321")], time())
-#     transactions.append(tx2)
-#     # tree2 = MerkleTrees(transactions)
-#     # tree2.create_tree()
-#     # transaction_tree2 = tree2.get_transaction_tree()
-#     # print 'Root of the tree:', tree2.get_root_leaf()
-#     # print(json.dumps(transaction_tree2, indent=4))
-#
-#     print '----------------------------------------------'
-#     tx3 = Transaction([TxInput(None, -1, "Reward to 123123", None)], [TxOutput(20, "654321")], time())
-#     transactions.append(tx3)
-#     tree3 = MerkleTrees(transactions)
-#     tree3.create_tree()
-#     transaction_tree3 = tree3.get_transaction_tree()
-#     print 'Root of the tree:', tree3.get_root_leaf()
-#     print(json.dumps(transaction_tree3, indent=4))
-# #
-# #     print str(tx)
