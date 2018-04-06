@@ -1,58 +1,10 @@
 # coding: utf-8
 import ConfigParser
+import leveldb
 import json
 import os
 import pickle
 from time import time
-
-import pickledb
-
-from Block import Block
-from MerkleTrees import MerkleTrees
-from script import Script
-from transaction import TxInput, TxOutput, Transaction
-from util import calculate_hash
-from wallet import Wallet
-
-
-def get_genius_block(index):
-    wallet = Wallet()
-    txin = TxInput(None, -1, None, None)
-    pubkey_hash = Script.sha160(str(wallet.pubkey))
-    # txoutput = TxOutput(100, pubkey_hash)
-    txoutput = TxOutput(100, "6fef881721b276cfa007f0cf9d0c23114800e8d0")  # 创始区块
-    coinbase_tx = Transaction([txin], [txoutput], 1496518102)
-    transactions = [coinbase_tx]
-
-    merkletrees = MerkleTrees(transactions)
-    merkleroot = merkletrees.get_root_leaf()
-    nonce = 0
-
-    genish_block_hash = calculate_hash(index=index,
-                                       previous_hash='00000000000000000000000000000000000000000000000000000000000000',
-                                       timestamp=1496518102,
-                                       merkleroot=merkleroot,
-                                       nonce=nonce,
-                                       difficulty=4)
-    while genish_block_hash[0:4] != '0' * 4:
-        genish_block_hash = calculate_hash(index=index,
-                                           previous_hash='00000000000000000000000000000000000000000000000000000000000000',
-                                           timestamp=1496518102,
-                                           merkleroot=merkleroot,
-                                           nonce=nonce,
-                                           difficulty=4)
-        nonce += 1
-    genius_block = Block(index=index,
-                         previous_hash='00000000000000000000000000000000000000000000000000000000000000',
-                         timestamp=1496518102,
-                         nonce=nonce,
-                         current_hash=genish_block_hash,
-                         difficulty=4)
-    genius_block.merkleroot = merkleroot
-    genius_block.transactions = transactions
-    # print 'genius block transactions: ', transactions
-
-    return genius_block
 
 
 def get_block_height(wallet_address):
@@ -216,16 +168,3 @@ def get_all_blocks(wallet_address):
         block_hash = get_block_hash(wallet_address, index)
         chain.append(get_block_data_by_hash(wallet_address, block_hash))
     return chain
-
-
-# txin = TxInput(None, -1, None, None)
-# # txoutput = TxOutput(100, pubkey_hash)
-# txoutput = TxOutput(100, "6fef881721b276cfa007f0cf9d0c23114800e8d0" + str(int(time())))  # 创始区块
-# coinbase_tx = Transaction([txin], [txoutput], time())
-#
-# write_unconfirmed_tx_to_db('shuwoom', coinbase_tx)
-
-# tx_list = get_all_unconfirmed_tx('shuwoom')
-# print [tx.json_output() for tx in tx_list]
-
-# clear_unconfirmed_tx_from_disk('shuwoom')

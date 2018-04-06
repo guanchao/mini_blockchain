@@ -329,13 +329,10 @@ class NodeManager(object):
 
     """
 
-    def __init__(self, ip, port=0, id=None):
+    def __init__(self, ip, port=0, genisus_node=False):
         self.ip = ip
         self.port = port
-        if not id:
-            self.node_id = self.__random_id()
-        else:
-            self.node_id = id
+        self.node_id = self.__random_id()
         self.address = (self.ip, self.port)
         self.buckets = KBucketSet(self.node_id)
         # 每个消息都有一个唯一的rpc_id，用于标识节点之间的通信（该rpc_id由发起方生成，并由接收方返回），
@@ -352,7 +349,7 @@ class NodeManager(object):
         self.alive_nodes = {}  # {"xxxx":"2018-03-12 22:00:00",....}
 
         self.server.node_manager = self
-        self.blockchain = Blockchain()
+        self.blockchain = Blockchain(genisus_node)
 
         # 消息处理
         self.processmessages_thread = threading.Thread(target=self.server.serve_forever)

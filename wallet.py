@@ -4,17 +4,30 @@ from binascii import unhexlify, hexlify, Error
 
 import rsa
 
+
 class Wallet(object):
     """
     简化钱包，一个钱包只包含一个密钥对（公钥+私钥）
     """
 
-    def __init__(self):
-        pubkey, privkey = rsa.newkeys(1024)
+    def __init__(self, genisus_node):
+        if genisus_node:
+            pubkey, privkey = self.get_genisus_keypair()
+        else:
+            pubkey, privkey = rsa.newkeys(1024)
 
         self.pubkey = pubkey
         self.privkey = privkey
         self.address = Wallet.get_address(self.pubkey)
+
+    def get_genisus_keypair(self):
+        with open('genisus_public.pem', 'r') as f:
+            pubkey = rsa.PublicKey.load_pkcs1(f.read().encode())
+
+        with open('genisus_private.pem', 'r') as f:
+            privkey = rsa.PrivateKey.load_pkcs1(f.read().encode())
+
+        return pubkey, privkey
 
     @staticmethod
     def get_address(pubkey):

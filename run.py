@@ -1,7 +1,7 @@
 # coding:utf-8
 import json
-import time
-
+import time, os
+import shutil
 from flask import Flask, jsonify, request
 
 import db
@@ -32,12 +32,6 @@ TODO:
 """
 
 app = Flask(__name__)
-
-node_manager = NodeManager('localhost')
-blockchain = node_manager.blockchain
-
-print "Wallet address: %s" % blockchain.get_wallet_address()
-
 
 @app.route('/candidates', methods=['GET'])
 def candidates():
@@ -394,4 +388,18 @@ if __name__ == '__main__':
     parser.add_argument('-p', '--port', default=5000, type=int, help='port to listen on')
     args = parser.parse_args()
     port = args.port
+
+    if os.path.exists('23DvZ2MzRoGhQk4vSUDcVsvJDEVb'):
+        shutil.rmtree('23DvZ2MzRoGhQk4vSUDcVsvJDEVb')  # 清除创世节点下的历史数据
+
+    if port == 5000:
+        genisus_node = True
+    else:
+        genisus_node = False
+
+    node_manager = NodeManager('localhost', 0, genisus_node)
+    blockchain = node_manager.blockchain
+
+    print "Wallet address: %s" % blockchain.get_wallet_address()
+
     app.run(host='0.0.0.0', port=port)
