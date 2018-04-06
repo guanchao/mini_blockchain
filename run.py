@@ -4,6 +4,7 @@ import time
 
 from flask import Flask, jsonify, request
 
+import db
 from p2p.node import NodeManager, Node
 from script import Script, get_address_from_ripemd160
 from wallet import Wallet
@@ -160,7 +161,7 @@ def curr_node():
 @app.route('/chain', methods=['GET'])
 def full_chain():
     output = {
-        'length': len(blockchain.chain),
+        'length': db.get_block_height(blockchain.wallet.address),
         'chain': blockchain.json_output(),
     }
     json_output = json.dumps(output, indent=4)
@@ -175,7 +176,7 @@ def candidate_blocks():
     # }
     for block_index in blockchain.candidate_blocks.keys():
         for candidate_block in blockchain.candidate_blocks[block_index]:
-            print block_index, candidate_block.json_output()
+            print block_index, candidate_block.current_hash, candidate_block.nonce
     # json_output = json.dumps(output, indent=4)
     # return json_output, 200
     return 'ok', 200
@@ -241,9 +242,10 @@ def node_info():
 
     ip = values['ip']
     port = values['port']
-    block_height = len(blockchain.chain)
-    block_hash = blockchain.chain[-1].current_hash
-    timestamp = blockchain.chain[-1].timestamp
+    block_height = db.get_block_height(blockchain.wallet.address)
+    latest_block = db.get_block_data_by_index(blockchain.wallet.address, block_height-1)
+    block_hash = latest_block.current_hash
+    timestamp = latest_block.timestamp
 
     time_local = time.localtime(timestamp)
 
@@ -265,7 +267,7 @@ def tx_info():
     block_index = int(request.args.get('block_index'))
     txid = request.args.get('txid')
 
-    block = blockchain.chain[block_index]
+    block = db.get_block_data_by_index(blockchain.wallet.address, block_index)
     for tx in block.transactions:
         if tx.txid == txid:
             return json.dumps(tx.json_output()), 200
@@ -288,7 +290,7 @@ def unconfirm_tx_info():
 def block_height():
     response = {
         'code': 0,
-        'value': len(blockchain.chain)
+        'value': db.get_block_height(blockchain.wallet.address)
     }
     return json.dumps(response), 200
 
@@ -336,7 +338,8 @@ def latest_tx():
 def block_info():
     height = request.args.get('height')
     block_index = int(height) - 1
-    block = blockchain.chain[block_index]
+
+    block = db.get_block_data_by_index(blockchain.wallet.address, block_index)
 
     json_transaction = list()
     for tx in block.transactions:

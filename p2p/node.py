@@ -9,6 +9,7 @@ import random
 import time
 from binascii import Error
 
+import db
 from blockchain import Blockchain
 from p2p import constant
 from p2p.kbucketset import KBucketSet
@@ -159,7 +160,8 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
         # print '[Info] handle sendblock, find new block:', payload.json_output()
         with self.server.node_manager.lock:
             blockchain = self.server.node_manager.blockchain
-            latest_block = blockchain.chain[-1]
+            block_height = db.get_block_height(blockchain.wallet.address)
+            latest_block = db.get_block_data_by_index(blockchain.get_wallet_address(), block_height-1)
             new_block = payload
 
             if (latest_block.current_hash == new_block.previous_hash) and (latest_block.index + 1 == new_block.index):
@@ -175,9 +177,15 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
                         break
 
                 if is_valid:
-                    blockchain.chain.append(new_block)
+                    db.write_to_db(blockchain.wallet.address, new_block)
                     # 重新挖矿
                     blockchain.current_transactions = []
+            else:
+                self.add_to_candidate_blocks(blockchain, new_block)
+
+            blockchain.set_consensus_chain()
+
+
 
     def handle_version(self, payload):
         version = payload.version
@@ -191,13 +199,15 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
             new_node = Node(client_ip, client_port, client_node_id)
             new_node.version = 1
             self.server.node_manager.buckets.insert(new_node)
+            blockchain = self.server.node_manager.blockchain
             print '[Info][handle_version] Add new node', client_node_id
 
+            block_counts = db.get_block_height(blockchain.get_wallet_address())
             verack = Verack(1, int(time.time()), self.server.node_manager.node_id, client_node_id,
-                            len(self.server.node_manager.blockchain.chain))
+                            block_counts)
             self.server.node_manager.sendverck(new_node, verack)
 
-            if payload.best_height > len(self.server.node_manager.blockchain.chain):
+            if payload.best_height > block_counts:
                 # TODO 检查best_height，同步区块链
                 pass
 
@@ -213,11 +223,19 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
             new_node = Node(client_ip, client_port, client_node_id)
             new_node.version = 1
             self.server.node_manager.buckets.insert(new_node)
+            blockchain = self.server.node_manager.blockchain
             print '[Info][handle_verack] Add new node', client_node_id
 
-            if payload.best_height > len(self.server.node_manager.blockchain.chain):
+            if payload.best_height > db.get_block_height(blockchain.get_wallet_address()):
                 # TODO 检查best_height，同步区块链
                 pass
+
+    def add_to_candidate_blocks(self, blockchain, new_block):
+        if new_block.index in blockchain.candidate_blocks.keys():
+            blockchain.candidate_blocks[new_block.index].add(new_block)
+        else:
+            blockchain.candidate_blocks[new_block.index] = set()
+            blockchain.candidate_blocks[new_block.index].add(new_block)
 
 
 class Server(SocketServer.ThreadingUDPServer):
@@ -455,7 +473,7 @@ class NodeManager(object):
         for seed_node in seed_nodes:
             # 握手
             self.sendversion(seed_node,
-                             Version(1, int(time.time()), self.node_id, seed_node.node_id, len(self.blockchain.chain)))
+                             Version(1, int(time.time()), self.node_id, seed_node.node_id, db.get_block_height(self.blockchain.get_wallet_address())))
 
         for seed_node in seed_nodes:
             self.iterative_find_nodes(self.client.node_id, seed_node)
@@ -496,15 +514,16 @@ class NodeManager(object):
             time.sleep(10)
 
             try:
-                # print '[Info] try to mine...'
-                new_block = self.blockchain.do_mine(self.lock)
+                with self.lock:
+                    # print '[Info] try to mine...'
+                    new_block = self.blockchain.do_mine()
                 # 广播区块
                 self.sendblock(new_block)
             except Error as e:
                 print '[Warn] minner ', e
                 pass
 
-                # self.blockchain.set_consensus_chain()  # pow机制保证最长辆（nonce之和最大的链）
+            self.blockchain.set_consensus_chain()  # pow机制保证最长辆（nonce之和最大的链）
 
     def set_data(self, key, value):
         """

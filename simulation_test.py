@@ -56,7 +56,7 @@ def main():
             amount = random.randint(1, node1_balance)
             print 'send from node1 to node2 with amount:'+str(amount)
             simulate_tx("127.0.0.1:5001", node1_wallet, node2_wallet, amount)
-            time.sleep(random.randint(15, 20))
+            time.sleep(random.randint(20,30))
     
         node1_balance = get_balance("127.0.0.1:5001", node1_wallet)
         node1_balance = node1_balance['balance']
@@ -64,8 +64,8 @@ def main():
             amount = random.randint(1, node1_balance)
             print 'send from node1 to node3 with amount:' + str(amount)
             simulate_tx("127.0.0.1:5001", node1_wallet, node3_wallet, amount)
-            time.sleep(random.randint(15, 20))
-        #
+            time.sleep(random.randint(20,30))
+
         # node2 发送给node1 node3
         node2_balance = get_balance("127.0.0.1:5002", node2_wallet)
         node2_balance = node2_balance['balance']
@@ -73,16 +73,16 @@ def main():
             amount = random.randint(1, node2_balance)
             print 'send from node2 to node1 with amount:' + str(amount)
             simulate_tx("127.0.0.1:5002", node2_wallet, node1_wallet, amount)
-            time.sleep(random.randint(15, 20))
-    
+            time.sleep(random.randint(20,30))
+
         node2_balance = get_balance("127.0.0.1:5002", node2_wallet)
         node2_balance = node2_balance['balance']
         if node2_balance > 0:
             amount = random.randint(1, node2_balance)
             print 'send from node2 to node3 with amount:' + str(amount)
             simulate_tx("127.0.0.1:5002", node2_wallet, node3_wallet, amount)
-            time.sleep(random.randint(15, 20))
-    
+            time.sleep(random.randint(20,30))
+        #
         # node3 发送给node1 node2
         node3_balance = get_balance("127.0.0.1:5003", node3_wallet)
         node3_balance = node3_balance['balance']
@@ -90,7 +90,7 @@ def main():
             amount = random.randint(1, node3_balance)
             print 'send from node3 to node1 with amount:' + str(amount)
             simulate_tx("127.0.0.1:5003", node3_wallet, node1_wallet, amount)
-            time.sleep(random.randint(15, 20))
+            time.sleep(random.randint(20,30))
     
         node3_balance = get_balance("127.0.0.1:5003", node3_wallet)
         node3_balance = node3_balance['balance']
@@ -98,7 +98,7 @@ def main():
             amount = random.randint(1, node3_balance)
             print 'send from node3 to node2 with amount:' + str(amount)
             simulate_tx("127.0.0.1:5003", node3_wallet, node2_wallet, amount)
-            time.sleep(random.randint(15, 20))
+            time.sleep(random.randint(20,30))
 
         time.sleep(10)
 
