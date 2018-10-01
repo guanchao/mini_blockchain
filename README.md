@@ -35,14 +35,18 @@
 
 ### **Step1：启动迷你区块链客户端（模拟3个节点）**
 测试demo中一共使用3个节点，大家可以根据需要自己调节。
+
 python run.py -p 5000 &
+
 python run.py -p 5001 &
+
 python run.py -p 5002 &
 
 ------
 
 ### **Step2：模拟交易**
 执行：python simulation_test.py
+
 模拟节点之间的交易行为，启动后大家可以看到有交易输出。
 
 ------
@@ -50,23 +54,36 @@ python run.py -p 5002 &
 ### **Step3：迷你区块链的json api接口调用**
 区块链客户端实现了json api，可以直接通过api调用来获取各个节点之间的信息：
 （1）获取区块链高度
+
 请求：
+
 http://127.0.0.1:5001/height
+
 返回：
+
 {"code": 0, "value": 2}
 
 （2）获取钱包余额
+
 请求：
+
 http://127.0.0.1:5001/balance?address=3Q7KKThJr5qcT7hM189AkVtqYLS8
+
 返回：
+```
 {                                            
-  "address": "3Q7KKThJr5qcT7hM189AkVtqYLS8", 
+
+   "address": "3Q7KKThJr5qcT7hM189AkVtqYLS8", 
   "balance": 24                              
 } 
+```
 
 （3）获取区块信息
+
 请求：
+
 http://127.0.0.1:5001/block_info?height=1
+
 返回：
 ```
 {                                                                                   
