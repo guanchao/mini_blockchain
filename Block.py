@@ -4,7 +4,14 @@ import json
 
 
 class Block(object):
-    def __init__(self, index, previous_hash, timestamp, nonce, current_hash, difficulty):
+    def __init__(
+            self,
+            index,
+            previous_hash,
+            timestamp,
+            nonce,
+            current_hash,
+            difficulty):
         """
         区块结构
         :param index: <int> 区块索引
@@ -43,4 +50,8 @@ class Block(object):
         return output
 
     def __str__(self):
-        return json.dumps(self.json_output(), default=lambda obj: obj.__dict__, sort_keys=True, indent=4)
+        return json.dumps(
+            self.json_output(),
+            default=lambda obj: obj.__dict__,
+            sort_keys=True,
+            indent=4)

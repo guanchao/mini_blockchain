@@ -4,7 +4,7 @@ import threading
 from p2p import constant
 
 
-class RPCNearestNodes(object):
+class KNearestNodesUtil(object):
     """
     用于更新保存距离某个节点最近的K个节点
     """

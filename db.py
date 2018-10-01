@@ -1,6 +1,5 @@
 # coding: utf-8
 import ConfigParser
-import leveldb
 import json
 import os
 import pickle

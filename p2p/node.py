@@ -15,7 +15,7 @@ import db
 from blockchain import Blockchain
 from p2p import constant
 from p2p.kbucketset import KBucketSet
-from p2p.nearestnodes import RPCNearestNodes
+from p2p.nearestnodes import KNearestNodesUtil
 from p2p import packet
 from p2p.packet import Version, Verack
 
@@ -34,8 +34,9 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
         :return:
         """
         msg_obj = pickle.loads(zlib.decompress(self.request[0]))
-        command = msg_obj.command
-        payload = msg_obj.payload
+
+        command = msg_obj.payloadcommand = msg_obj.command
+        payload = msg_obj.payloadcommand = msg_obj.payload
 
         # print 'Handle ', command, 'from ', self.client_address
         # print command, 'payload:', payload
@@ -93,10 +94,10 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
 
     def handle_found_neighbors(self, payload):
         rpc_id = payload.rpc_id
-        rpc_nearest_nodes = self.server.node_manager.rpc_ids[rpc_id]
+        k_nearest_nodes_util = self.server.node_manager.rpc_ids[rpc_id]
         del self.server.node_manager.rpc_ids[rpc_id]
         nearest_nodes = [Node(*node) for node in payload.neighbors]
-        rpc_nearest_nodes.update(nearest_nodes)
+        k_nearest_nodes_util.update(nearest_nodes)
 
     def handle_find_value(self, payload):
         socket = self.request[1]
@@ -119,9 +120,9 @@ class ProcessMessages(SocketServer.BaseRequestHandler):
     def handle_found_value(self, payload):
         rpc_id = payload.rpc_id
         value = payload.value
-        rpc_nearest_nodes = self.server.node_manager.rpc_ids[rpc_id]
+        k_nearest_nodes_util = self.server.node_manager.rpc_ids[rpc_id]
         del self.server.node_manager.rpc_ids[rpc_id]
-        rpc_nearest_nodes.set_target_value(value)
+        k_nearest_nodes_util.set_target_value(value)
 
     def handle_store(self, payload):
         key = payload.key
@@ -396,43 +397,43 @@ class NodeManager(object):
         :param seed_nodes:
         :return:
         """
-        rpc_nearest_nodes = RPCNearestNodes(key)
-        rpc_nearest_nodes.update(self.buckets.nearest_nodes(key))
+        k_nearest_nodes_util = KNearestNodesUtil(key)
+        k_nearest_nodes_util.update(self.buckets.nearest_nodes(key))
         if seed_node:
             rpc_id = self.__get_rpc_id()
-            self.rpc_ids[rpc_id] = rpc_nearest_nodes
+            self.rpc_ids[rpc_id] = k_nearest_nodes_util
             self.find_neighbors(key, rpc_id, self.server.socket, key,
                                 (seed_node.ip, seed_node.port))
 
-        while (not rpc_nearest_nodes.is_complete()) or seed_node:  # 循环迭代直至距离目标节点最近的K个节点都找出来
+        while (not k_nearest_nodes_util.is_complete()) or seed_node:  # 循环迭代直至距离目标节点最近的K个节点都找出来
             # 限制同时向ALPHA(3)个邻近节点发送FIND NODE请求
-            unvisited_nearest_nodes = rpc_nearest_nodes.get_unvisited_nearest_nodes(constant.ALPHA)
+            unvisited_nearest_nodes = k_nearest_nodes_util.get_unvisited_nearest_nodes(constant.ALPHA)
             for node in unvisited_nearest_nodes:
-                rpc_nearest_nodes.mark(node)
+                k_nearest_nodes_util.mark(node)
                 rpc_id = self.__get_rpc_id()
-                self.rpc_ids[rpc_id] = rpc_nearest_nodes
+                self.rpc_ids[rpc_id] = k_nearest_nodes_util
                 self.find_neighbors(key, rpc_id, self.server.socket, key,
                                     (node.ip, node.port))
             time.sleep(1)
             seed_node = None
 
-        return rpc_nearest_nodes.get_result_nodes()
+        return k_nearest_nodes_util.get_result_nodes()
 
     def iterative_find_value(self, key):
-        rpc_nearest_nodes = RPCNearestNodes(key)
-        rpc_nearest_nodes.update(self.buckets.nearest_nodes(key))
-        while not rpc_nearest_nodes.is_complete():
+        k_nearest_nodes_util = KNearestNodesUtil(key)
+        k_nearest_nodes_util.update(self.buckets.nearest_nodes(key))
+        while not k_nearest_nodes_util.is_complete():
             # 限制同时向ALPHA(3)个邻近节点发送FIND NODE请求
-            unvisited_nearest_nodes = rpc_nearest_nodes.get_unvisited_nearest_nodes(constant.ALPHA)
+            unvisited_nearest_nodes = k_nearest_nodes_util.get_unvisited_nearest_nodes(constant.ALPHA)
             for node in unvisited_nearest_nodes:
-                rpc_nearest_nodes.mark(node)
+                k_nearest_nodes_util.mark(node)
                 rpc_id = self.__get_rpc_id()
-                self.rpc_ids[rpc_id] = rpc_nearest_nodes
+                self.rpc_ids[rpc_id] = k_nearest_nodes_util
                 self.find_value(key, rpc_id, self.server.socket, node.node_id, (node.ip, node.port))
 
             time.sleep(1)
 
-        return rpc_nearest_nodes.get_target_value()
+        return k_nearest_nodes_util.get_target_value()
 
     def bootstrap(self, seed_nodes=[]):
         """
